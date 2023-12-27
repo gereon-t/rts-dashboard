@@ -1,0 +1,63 @@
+p {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-weight: 300;
+}
+
+body {
+    font-family: Roboto, thin;
+    background-color: rgb(245, 245, 245);
+    position: absolute;
+    top: 65px;
+    left: 24px;
+    right: 24px;
+    bottom: 0px;
+    margin: 24px auto;
+    width: 60%;
+}
+
+.button {
+    height: 36px;
+    padding: 0px 10px;
+    border: 1px solid rgb(204, 204, 204);
+    background-color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.15s;
+    font-weight: 300;
+    font-size: 16px;
+}
+
+.button:hover {
+    background-color: rgb(240, 240, 240);
+}
+
+.tab {
+    margin-top: 20px;
+}
+
+.modal-footer-buttons {
+    display: flex;
+    justify-content: right;
+}
+
+.section-header {
+    font-size: 32px;
+    color: black;
+    font-weight: 300;
+    margin-right: 20px;
+}
+
+.tab-header-group {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.tab-divider {
+    border-bottom: 1px solid rgb(204, 204, 204);
+    margin-top: 40px;
+    margin-bottom: 40px;
+}

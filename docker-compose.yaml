@@ -1,0 +1,9 @@
+services:
+  rts-dashboard:
+    image: "gtombrink/rts-dashboard:latest"
+    ports:
+      - "8050:8050"
+    restart: unless-stopped
+    environment:
+      - NETWORK=${NETWORK}
+      - PORT=${PORT}

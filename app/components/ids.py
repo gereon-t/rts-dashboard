@@ -1,0 +1,36 @@
+DEVICE_IP_INPUT = "ip-input"
+DEVICE_PORT_INPUT = "port-input"
+DEVICE_NAME_INPUT = "device-name-input"
+RTS_NAME_INPUT = "rts-name-input"
+RTS_PORT_INPUT = "rts-port-input"
+RTS_BAUDRATE_INPUT = "rts-baudrate-input"
+RTS_TIMEOUT_INPUT = "rts-timeout-input"
+RTS_PARITY_INPUT = "rts-parity-input"
+RTS_STOPBITS_INPUT = "rts-stopbits-input"
+RTS_BYTESIZE_INPUT = "rts-bytesize-input"
+CREATE_RTS_BUTTON = "create-rts-button"
+CREATE_DEVICE_BUTTON = "create-device-button"
+OPEN_DEVICE_MODAL_BUTTON = "device-modal-button"
+OPEN_RTS_MODAL_BUTTON = "rts-modal-button"
+DEVICE_DROPDOWN = "device-dropdown"
+
+CLOSE_DEVICE_MODAL_BUTTON = "close-device-modal-button"
+DEVICE_MODAL = "device-modal"
+
+CLOSE_RTS_MODAL_BUTTON = "close-rts-modal-button"
+RTS_MODAL = "rts-modal"
+
+DEVICE_LIST = "device-list"
+REFRESH = "refresh"
+SCAN_DEVICES_BUTTON = "scan-devices-button"
+RTS_LIST = "rts-list"
+PROGRESS_BAR = "progress-bar"
+LOADING = "loading"
+
+INVALID_DEVICE_INPUT_ALERT = "invalid-input-alert"
+INVALID_RTS_INPUT_ALERT = "invalid-rts-input-alert"
+
+START_ALL_BUTTON = "start-all-button"
+STOP_ALL_BUTTON = "stop-all-button"
+
+DUMMY_OUTPUT = "dummy-output"
