@@ -126,6 +126,15 @@ def get_tracking_status(device: models.Device, rts_id: int) -> Union[dict, None]
     return response.json()
 
 
+def get_connection_status(device: models.Device, rts_id: int) -> Union[dict, None]:
+    response = request(device, "GET", f"/rts/status/{rts_id}")
+
+    if response is None:
+        return None
+
+    return response.json()
+
+
 def ping_rts(device: models.Device, rts_id: int) -> bool:
     response = request(device, "GET", f"/rts/ping/{rts_id}")
 

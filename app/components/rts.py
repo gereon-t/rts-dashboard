@@ -67,7 +67,7 @@ def render_rts(rts: models.RTS_API, device: models.Device) -> html.Div:
                     html.Div(
                         [
                             html.P(
-                                "Tracking Status",
+                                "Operation in Progress",
                                 className="item-status-label",
                                 id={
                                     "type": "rts-tracking-status-label",

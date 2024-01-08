@@ -1,6 +1,6 @@
 services:
   rts-dashboard:
-    image: "gtombrink/rts-dashboard:latest"
+    build: .
     ports:
       - "8050:8050"
     restart: unless-stopped

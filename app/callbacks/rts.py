@@ -8,6 +8,11 @@ from app.components.rts import render_rts
 
 logger = logging.getLogger("root")
 
+STATUS_ICONS = {
+    True: app.get_asset_url("status-success.svg"),
+    False: app.get_asset_url("status-error.svg"),
+}
+
 
 def get_current_rts_list():
     rts_children = []
@@ -23,7 +28,9 @@ def get_current_rts_list():
 
 @app.callback(
     Output(
-        {"type": "rts-serial-status-icon", "rts_id": MATCH, "device_id": MATCH}, "src"
+        {"type": "dummy-output", "rts_id": MATCH, "device_id": MATCH},
+        "children",
+        allow_duplicate=True,
     ),
     Input({"type": "rts-test", "rts_id": MATCH, "device_id": MATCH}, "n_clicks"),
     Input({"type": "rts-test", "rts_id": MATCH, "device_id": MATCH}, "id"),
@@ -42,12 +49,7 @@ def test_rts_connection(_: int, trigger_info: dict):
         return app.get_asset_url("status-error.svg")
 
     device = models.Device(**db_device.__dict__)
-    connection_status = api.validate_rts_connection(device=device, rts_id=rts_id)
-    if connection_status:
-        api.ping_rts(device=device, rts_id=rts_id)
-        return app.get_asset_url("status-success.svg")
-    else:
-        return app.get_asset_url("status-error.svg")
+    api.validate_rts_connection(device=device, rts_id=rts_id)
 
 
 @app.callback(
@@ -105,7 +107,11 @@ def stop_tracking(_: int, trigger_info: dict):
 
 
 @app.callback(
-    Output({"type": "dummy-output", "rts_id": MATCH, "device_id": MATCH}, "children"),
+    Output(
+        {"type": "dummy-output", "rts_id": MATCH, "device_id": MATCH},
+        "children",
+        allow_duplicate=True,
+    ),
     Input({"type": "rts-change-face", "rts_id": MATCH, "device_id": MATCH}, "n_clicks"),
     Input({"type": "rts-change-face", "rts_id": MATCH, "device_id": MATCH}, "id"),
     prevent_initial_call=True,
@@ -126,7 +132,9 @@ def change_face(_: int, trigger_info: dict):
 )
 def remove_rts(n_clicks: int, trigger_info: dict):
     if any(n_clicks):
-        button_index = next((i for i in range(len(n_clicks)) if n_clicks[i] is not None), None)
+        button_index = next(
+            (i for i in range(len(n_clicks)) if n_clicks[i] is not None), None
+        )
         device_id = trigger_info[button_index]["device_id"]
         rts_id = trigger_info[button_index]["rts_id"]
         device = device_cache.get(device_id)
@@ -135,6 +143,9 @@ def remove_rts(n_clicks: int, trigger_info: dict):
 
 
 @app.callback(
+    Output(
+        {"type": "rts-serial-status-icon", "rts_id": MATCH, "device_id": MATCH}, "src"
+    ),
     Output(
         {"type": "rts-tracking-status-icon", "rts_id": MATCH, "device_id": MATCH}, "src"
     ),
@@ -161,15 +172,14 @@ def update_tracking_status(_: int, trigger_info: dict):
         return app.get_asset_url("status-error.svg"), "Recorded Positions: 0"
 
     device = models.Device(**db_device.__dict__)
-    response = api.get_tracking_status(device=device, rts_id=rts_id)
+    tracking_response = api.get_tracking_status(device=device, rts_id=rts_id)
+    connection_response = api.get_connection_status(device=device, rts_id=rts_id)
 
-    tracking_status = response["active"]
-    num_positions = f"Recorded Positions: {response['positions']}"
+    tracking_status = tracking_response["active"]
+    connection_status = connection_response["connected"]
+    num_positions = f"Recorded Positions: {tracking_response['positions']}"
 
-    if tracking_status:
-        return app.get_asset_url("status-success.svg"), num_positions
-
-    return app.get_asset_url("status-error.svg"), num_positions
+    return STATUS_ICONS[connection_status], STATUS_ICONS[tracking_status], num_positions
 
 
 @app.callback(
