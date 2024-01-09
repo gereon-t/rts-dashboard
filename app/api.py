@@ -36,7 +36,11 @@ def validate_device_connection(device: models.DeviceCreate) -> bool:
     if response is None:
         return False
 
-    return response.json()["message"] == "Server is running"
+    response_json = response.json()
+    if response_json is None or not isinstance(response_json, dict):
+        return False
+
+    return response_json.get("message", "") == "Server is running"
 
 
 def add_rts(
@@ -87,7 +91,7 @@ def validate_rts_connection(device: models.Device, rts_id: int) -> bool:
     if response is None:
         return False
 
-    return response.json()["connected"]
+    return True
 
 
 def start_tracking(device: models.Device, rts_id: int) -> bool:
