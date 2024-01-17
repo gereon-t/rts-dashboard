@@ -27,7 +27,7 @@ def validate_port(port_number: int) -> bool:
         Input(ids.DEVICE_IP_INPUT, "value"),
     ],
 )
-def update_form(text: str) -> Tuple[bool, bool]:
+def update_ip_form(text: str) -> Tuple[bool, bool]:
     if not text:
         return False, False
 
@@ -44,7 +44,7 @@ def update_form(text: str) -> Tuple[bool, bool]:
         Input(ids.DEVICE_PORT_INPUT, "value"),
     ],
 )
-def update_form(number: int) -> Tuple[bool, bool]:
+def update_port_form(number: int) -> Tuple[bool, bool]:
     if not number:
         return False, False
 

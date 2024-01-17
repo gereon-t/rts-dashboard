@@ -5,12 +5,12 @@ from app import models
 logger = logging.getLogger("root")
 
 
-def to_dropdown_options(device_storage: dict[dict]) -> list[dict]:
+def to_dropdown_options(device_storage: dict[str, dict]) -> list[dict]:
     devices = [models.Device(**device) for device in device_storage.values()]
     return [{"label": device.name, "value": device.id} for device in devices]
 
 
-def get_current_dropdown_options(device_storage: dict[dict]) -> list[dict]:
+def get_current_dropdown_options(device_storage: dict[str, dict]) -> list[dict]:
     return [
         {"label": device["name"], "value": device["id"]}
         for device in device_storage.values()
@@ -22,14 +22,14 @@ class DeviceNotFound(Exception):
 
 
 def get_device_from_storage(
-    device_id: int, device_storage: dict[dict]
+    device_id: int, device_storage: dict[str, dict]
 ) -> models.Device:
     """
     This function returns the device with the given ID from the device storage.
 
     Args:
         device_id (int): The ID of the device
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
 
     Returns:
         models.Device: The device with the given ID
@@ -40,7 +40,7 @@ def get_device_from_storage(
     return models.Device(**device_storage[str(device_id)])
 
 
-def get_button_index(n_clicks: list) -> int:
+def get_button_index(n_clicks: list[None | int]) -> int:
     """
     This function returns the index of the button that was clicked.
 

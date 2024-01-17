@@ -31,7 +31,7 @@ def toggle_modal(
     n_clicks_settings: list,
     n_clicks_close: int,
     is_open: bool,
-    device_storage: dict[dict],
+    device_storage: dict[str, dict],
 ):
     """
     This callback is triggered when the user clicks on the settings button of an RTS.
@@ -45,7 +45,7 @@ def toggle_modal(
         n_clicks_settings (list): List of n_clicks for all settings buttons
         n_clicks_close (int): n_clicks for the close button
         is_open (bool): Current state of the modal
-        device_storage (dict[dict]): Dictionary containing all devices
+        device_storage (dict[str, dict]): Dictionary containing all devices
 
     Returns:
         tuple: Tuple containing the new state of the modal, the current settings
@@ -110,7 +110,7 @@ def update_tracking_settings(
     power_search_range: int,
     power_search_enabled: bool,
     is_open: bool,
-    device_storage: dict[dict],
+    device_storage: dict[str, dict],
     active_rts: int,
     active_device: int,
 ):
@@ -135,7 +135,7 @@ def update_tracking_settings(
         power_search_range (int): Power search range
         power_search_enabled (bool): Power search enabled
         is_open (bool): Current state of the modal
-        device_storage (dict[dict]): Dictionary containing all devices
+        device_storage (dict[str, dict]): Dictionary containing all devices
         active_rts (int): Active RTS
         active_device (int): Active device
 

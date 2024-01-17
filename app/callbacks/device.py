@@ -10,11 +10,15 @@ from app import api, app, models
 from app.callbacks.input_validators import validate_ip_address, validate_port
 from app.components import ids
 from app.components.device import render_device
-from app.utils import (DeviceNotFound, get_button_index,
-                       get_current_dropdown_options, get_device_from_storage)
+from app.utils import (
+    DeviceNotFound,
+    get_button_index,
+    get_current_dropdown_options,
+    get_device_from_storage,
+)
 
 
-def render_device_list(device_storage: dict[dict]) -> list[html.Div]:
+def render_device_list(device_storage: dict[str, dict]) -> list[html.Div]:
     """
     This function renders the device list from the device storage.
 
@@ -43,7 +47,9 @@ def render_device_list(device_storage: dict[dict]) -> list[html.Div]:
     State(ids.DEVICE_STORAGE, "data"),
 )
 def test_device_connection(
-    n_clicks: int, trigger_info: list[dict], device_storage: dict[dict]
+    n_clicks: list[int | None],
+    trigger_info: list[dict],
+    device_storage: dict[str, dict],
 ):
     """
     This callback is triggered when the user clicks on the "Test" button for a device.
@@ -52,7 +58,7 @@ def test_device_connection(
     depending on whether the device is reachable or not.
 
     Args:
-        _ (int): The number of times the button has been clicked
+        n_clicks (list[int | None]): The number of times the button has been clicked
         trigger_info (list[dict]): The information about the button that was clicked
         device_storage (list[dict]): The current device storage
 
@@ -84,14 +90,18 @@ def test_device_connection(
     State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def remove_device(n_clicks: int, trigger_info: list[dict], device_storage: dict[dict]):
+def remove_device(
+    n_clicks: list[int | None],
+    trigger_info: list[dict],
+    device_storage: dict[str, dict],
+):
     """
     This callback is triggered when the user clicks on the "Remove" button for a device.
 
     It will remove the device from the device storage.
 
     Args:
-        n_clicks (int): The number of times the button has been clicked
+        n_clicks (list[int]): The number of times the button has been clicked
         trigger_info (list[dict]): The information about the button that was clicked
         device_storage (list[dict]): The current device storage
 
@@ -114,7 +124,7 @@ def remove_device(n_clicks: int, trigger_info: list[dict], device_storage: dict[
     Input(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def update_device_list(device_storage: dict[dict]):
+def update_device_list(device_storage: dict[str, dict]):
     """
     This callback is triggered when the device storage is updated.
 
@@ -181,7 +191,7 @@ def device_modal_actions(
     device_ip: str,
     device_port: int,
     modal_is_open: bool,
-    device_storage: dict[dict],
+    device_storage: dict[str, dict],
 ):
     """
     This callback is triggered when the user clicks on the "Create" button
@@ -213,7 +223,7 @@ def device_modal_actions(
             port=device_port,
             name=device_name,
         )
-        device_storage[device.id] = device.model_dump()
+        device_storage[str(device.id)] = device.model_dump()
         return device_storage, not modal_is_open, False
 
     return device_storage, modal_is_open, True
@@ -225,7 +235,7 @@ def device_modal_actions(
     State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def scan_for_devices(_: int, device_storage: dict[dict]):
+def scan_for_devices(_: int, device_storage: dict[str, dict]):
     """
     This callback is triggered when the user clicks on the "Scan" button.
 
@@ -254,6 +264,6 @@ def scan_for_devices(_: int, device_storage: dict[dict]):
         if not api.validate_device_connection(device):
             continue
 
-        device_storage[device.id] = device.model_dump()
+        device_storage[str(device.id)] = device.model_dump()
 
     return device_storage

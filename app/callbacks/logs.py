@@ -21,7 +21,10 @@ logger = logging.getLogger("root")
     prevent_initial_call=True,
 )
 def toggle_modal(
-    n_clicks: list[int], n_clicks_close: int, is_open: bool, device_storage: dict[dict]
+    n_clicks: list[int],
+    n_clicks_close: int,
+    is_open: bool,
+    device_storage: dict[str, dict],
 ):
     """
     This callback is triggered when the user clicks on the logs button of an RTS.
@@ -34,7 +37,7 @@ def toggle_modal(
         n_clicks (list): List of n_clicks for all logs buttons
         n_clicks_close (int): n_clicks for the close button
         is_open (bool): Current state of the modal
-        device_storage (dict[dict]): Dictionary containing all devices
+        device_storage (dict[str, dict]): Dictionary containing all devices
 
     Returns:
         tuple: Tuple containing the new state of the modal, the current logs and the
@@ -45,7 +48,7 @@ def toggle_modal(
     else:
         modal_state = not is_open
 
-    options = []
+    options: list[dict] = []
     button_id = ctx.triggered_id
 
     if not modal_state or button_id is None:
@@ -81,7 +84,11 @@ def toggle_modal(
     prevent_initial_call=True,
 )
 def download_log(
-    _: int, is_open: bool, log_id: int, device_id: int, device_storage: dict[dict]
+    _: int,
+    is_open: bool,
+    log_id: int | None,
+    device_id: int,
+    device_storage: dict[str, dict],
 ):
     """
     This callback is triggered when the user clicks on the download button of the log
@@ -99,7 +106,7 @@ def download_log(
     Returns:
         tuple: Tuple containing the new state of the modal and the download data
     """
-    if not log_id:
+    if log_id is None:
         return is_open, None
 
     logger.info("Downloading log %i from device %i", log_id, device_id)
@@ -110,15 +117,19 @@ def download_log(
         )
     except DeviceNotFound:
         logger.error("Unable to get device %i", device_id)
-        log_content = str(b"Unable to get tracking settings", encoding="utf-8")
-        return is_open, dict(content=log_content, filename="FAILED.txt")
+        log_content = b"Unable to get tracking settings"
+        return is_open, dict(
+            content=str(log_content, encoding="utf-8"), filename="FAILED.txt"
+        )
 
     log_content = api.download_log(device=device, log_id=log_id)
 
     if log_content is None:
         logger.error("Failed to download log")
-        log_content = str(b"Failed to download log from server", encoding="utf-8")
-        return is_open, dict(content=log_content, filename="FAILED.txt")
+        log_content = b"Failed to download log from server"
+        return is_open, dict(
+            content=str(log_content, encoding="utf-8"), filename="FAILED.txt"
+        )
 
     return not is_open, dict(
         content=str(log_content, encoding="utf-8"), filename=f"log_{log_id}.txt"
@@ -137,11 +148,11 @@ def download_log(
 )
 def delete_log(
     n_clicks: int,
-    options: dict,
-    log_id: int,
+    options: list[dict],
+    log_id: int | None,
     device_id: int,
     rts_id: int,
-    device_storage: dict[dict],
+    device_storage: dict[str, dict],
 ):
     """
     This callback is triggered when the user clicks on the delete button of the log
@@ -160,7 +171,7 @@ def delete_log(
     Returns:
         dict: New options of the log dropdown
     """
-    if not (log_id and n_clicks):
+    if log_id is None or not n_clicks:
         return options
 
     try:

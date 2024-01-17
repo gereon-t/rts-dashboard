@@ -20,7 +20,7 @@ STATUS_ICONS = {
 def handle_api_request(
     api_func: Callable[[models.Device, int], bool],
     trigger_id: dict,
-    device_storage: dict[dict],
+    device_storage: dict[str, dict],
 ) -> None:
     """
     Helper function to handle API requests.
@@ -28,14 +28,14 @@ def handle_api_request(
     Args:
         api_func (Callable[[models.Device, int], bool]): The API function to call
         trigger_id (dict): The information about the button that was clicked
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
 
     """
     try:
         device, rts_id = get_device_and_rts_id(
             trigger_id=trigger_id, device_storage=device_storage
         )
-        api_success = api_func(device=device, rts_id=rts_id)
+        api_success = api_func(device, rts_id)
     except DeviceNotFound:
         logger.error("Failed to get device")
 
@@ -46,7 +46,7 @@ def handle_api_request(
 
 
 def get_device_and_rts_id(
-    trigger_id: dict, device_storage: dict[dict]
+    trigger_id: dict, device_storage: dict[str, dict]
 ) -> tuple[models.Device, int]:
     """
     This function returns the device and RTS ID of the button that was clicked.
@@ -68,12 +68,12 @@ def get_device_and_rts_id(
     return device, rts_id
 
 
-def render_rts_list(device_storage: dict[dict]):
+def render_rts_list(device_storage: dict[str, dict]):
     """
     This function renders the RTS list from the device storage.
 
     Args:
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
 
     Returns:
         list[html.Div]: The RTS list
@@ -95,7 +95,7 @@ def render_rts_list(device_storage: dict[dict]):
     Input(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def update_rts_list(device_storage: dict[dict]):
+def update_rts_list(device_storage: dict[str, dict]):
     return render_rts_list(device_storage)
 
 
@@ -105,7 +105,7 @@ def update_rts_list(device_storage: dict[dict]):
     State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def test_rts_connection(n_clicks: list[int], device_storage: dict[dict]):
+def test_rts_connection(n_clicks: list[int], device_storage: dict[str, dict]):
     """
     This callback is triggered when the user clicks on the "Test" button for a RTS.
 
@@ -113,7 +113,7 @@ def test_rts_connection(n_clicks: list[int], device_storage: dict[dict]):
 
     Args:
         n_clicks (list[int]): The number of times the button has been clicked
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
     """
     if not any(n_clicks):
         return
@@ -131,7 +131,7 @@ def test_rts_connection(n_clicks: list[int], device_storage: dict[dict]):
     State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def start_tracking(n_clicks: list[int], device_storage: dict[dict]):
+def start_tracking(n_clicks: list[int], device_storage: dict[str, dict]):
     """
     This callback is triggered when the user clicks on the "Start" button for a RTS.
 
@@ -139,7 +139,7 @@ def start_tracking(n_clicks: list[int], device_storage: dict[dict]):
 
     Args:
         n_clicks (list[int]): The number of times the button has been clicked
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
     """
     if not any(n_clicks):
         return
@@ -157,7 +157,7 @@ def start_tracking(n_clicks: list[int], device_storage: dict[dict]):
     State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def start_dummy_tracking(n_clicks: list[int], device_storage: dict[dict]):
+def start_dummy_tracking(n_clicks: list[int], device_storage: dict[str, dict]):
     """
     This callback is triggered when the user clicks on the "Start Dummy Tracking" button for a RTS.
 
@@ -165,7 +165,7 @@ def start_dummy_tracking(n_clicks: list[int], device_storage: dict[dict]):
 
     Args:
         n_clicks (list[int]): The number of times the button has been clicked
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
     """
     if not any(n_clicks):
         return
@@ -183,7 +183,7 @@ def start_dummy_tracking(n_clicks: list[int], device_storage: dict[dict]):
     State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def stop_tracking(n_clicks: list[int], device_storage: dict[dict]):
+def stop_tracking(n_clicks: list[int], device_storage: dict[str, dict]):
     """
     This callback is triggered when the user clicks on the "Stop" button for a RTS.
 
@@ -191,7 +191,7 @@ def stop_tracking(n_clicks: list[int], device_storage: dict[dict]):
 
     Args:
         n_clicks (list[int]): The number of times the button has been clicked
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
     """
     if not any(n_clicks):
         return
@@ -209,7 +209,7 @@ def stop_tracking(n_clicks: list[int], device_storage: dict[dict]):
     State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def change_face(n_clicks: list[int], device_storage: dict[dict]):
+def change_face(n_clicks: list[int], device_storage: dict[str, dict]):
     """
     This callback is triggered when the user clicks on the "Change Face" button for a RTS.
 
@@ -217,7 +217,7 @@ def change_face(n_clicks: list[int], device_storage: dict[dict]):
 
     Args:
         n_clicks (list[int]): The number of times the button has been clicked
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
     """
     if not any(n_clicks):
         return
@@ -235,7 +235,7 @@ def change_face(n_clicks: list[int], device_storage: dict[dict]):
     State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def remove_rts(n_clicks: list[int], device_storage: dict[dict]):
+def remove_rts(n_clicks: list[int], device_storage: dict[str, dict]):
     """
     This callback is triggered when the user clicks on the "Remove" button for a RTS.
 
@@ -243,7 +243,7 @@ def remove_rts(n_clicks: list[int], device_storage: dict[dict]):
 
     Args:
         n_clicks (list[int]): The number of times the button has been clicked
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
     """
     if not any(n_clicks):
         return render_rts_list(device_storage)
@@ -283,7 +283,7 @@ def remove_rts(n_clicks: list[int], device_storage: dict[dict]):
     State(ids.DEVICE_STORAGE, "data"),
 )
 def update_tracking_status(
-    _: int, trigger_info: dict, stored_position: dict, device_storage: dict[dict]
+    _: int, trigger_info: dict, stored_position: dict, device_storage: dict[str, dict]
 ):
     """
     This callback is triggered when the tracking status interval fires. It will update
@@ -293,7 +293,7 @@ def update_tracking_status(
         _: The number of times the interval has fired
         trigger_info (dict): The information about the button that was clicked
         stored_position (dict): The current stored position
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
 
     Returns:
         tuple: The status icons for the connection and tracking status, the number of
@@ -314,6 +314,14 @@ def update_tracking_status(
 
     tracking_response = api.get_tracking_status(device=device, rts_id=rts_id)
     connection_response = api.get_connection_status(device=device, rts_id=rts_id)
+
+    if tracking_response is None or connection_response is None:
+        return (
+            app.get_asset_url("status-error.svg"),
+            app.get_asset_url("status-error.svg"),
+            "0",
+            stored_position,
+        )
 
     tracking_status = tracking_response["active"]
     connection_status = connection_response["connected"]
@@ -349,7 +357,7 @@ def update_tracking_status(
     Input({"type": "rts-position-storage", "rts_id": ALL, "device_id": ALL}, "data"),
     prevent_initial_call=True,
 )
-def update_target_position(stored_positions: int):
+def update_target_position(stored_positions: list[dict]):
     if not stored_positions:
         stored_positions = [
             {"timestamp": 0, "pos_x": 0, "pos_y": 0, "pos_z": 0, "device": "None"}
@@ -417,7 +425,7 @@ def rts_modal_actions(
     rts_bytesize: int,
     rts_timeout: int,
     modal_is_open: bool,
-    device_storage: dict[dict],
+    device_storage: dict[str, dict],
 ):
     """
     This callback is triggered when the user clicks on the "Add" button of the RTS modal.
@@ -435,7 +443,7 @@ def rts_modal_actions(
         rts_bytesize (int): The bytesize of the RTS
         rts_timeout (int): The timeout of the RTS
         modal_is_open (bool): Whether the RTS modal is open
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
 
     Returns:
         bool: Whether the RTS modal is open
@@ -495,7 +503,7 @@ def rts_modal_actions(
     State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def start_all(_: int, device_storage: dict[dict]):
+def start_all(_: int, device_storage: dict[str, dict]):
     """
     This callback is triggered when the user clicks on the "Start All" button.
 
@@ -503,7 +511,7 @@ def start_all(_: int, device_storage: dict[dict]):
 
     Args:
         _: The number of times the button has been clicked
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
 
     Returns:
         str: An empty string, to prevent the callback from returning None
@@ -525,7 +533,7 @@ def start_all(_: int, device_storage: dict[dict]):
     State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def stop_all(_: int, device_storage: dict[dict]):
+def stop_all(_: int, device_storage: dict[str, dict]):
     """
     This callback is triggered when the user clicks on the "Stop All" button.
 
@@ -533,7 +541,7 @@ def stop_all(_: int, device_storage: dict[dict]):
 
     Args:
         _: The number of times the button has been clicked
-        device_storage (dict[dict]): The current device storage
+        device_storage (dict[str, dict]): The current device storage
 
     Returns:
         str: An empty string, to prevent the callback from returning None
