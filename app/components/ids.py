@@ -29,8 +29,41 @@ LOADING = "loading"
 
 INVALID_DEVICE_INPUT_ALERT = "invalid-input-alert"
 INVALID_RTS_INPUT_ALERT = "invalid-rts-input-alert"
+INVALID_SETTINGS_INPUT_ALERT = "invalid-settings-input-alert"
 
 START_ALL_BUTTON = "start-all-button"
 STOP_ALL_BUTTON = "stop-all-button"
 
 DUMMY_OUTPUT = "dummy-output"
+
+DEVICE_STORAGE = "device-storage"
+RTS_POSITION_STORAGE = "rts-position-storage"
+TARGET_POSITION = "target-position"
+DEVICE_COUNT = "device-count"
+
+RTS_UPDATE_SIGNAL = "rts-update-signal"
+
+SETTINGS_MODAL = "settings-modal"
+SETTINGS_MODAL_BODY = "settings-modal-body"
+APPLY_SETTINGS_MODAL_BUTTON = "apply-settings-modal-button"
+CLOSE_SETTINGS_MODAL_BUTTON = "close-settings-modal-button"
+SETTINGS_FORM = "settings-form"
+
+RTS_MEASUREMENT_MODE = "rts-measurement-mode"
+RTS_INCLINATION_MODE = "rts-inclination-mode"
+RTS_EDM_MODE = "rts-edm-mode"
+RTS_PRISM_TYPE = "rts-prism-type"
+RTS_FINE_ADJUST_HORIZONTAL_SEARCH_RANGE = "rts-fine-adjust-horizontal-search-range"
+RTS_FINE_ADJUST_VERTICAL_SEARCH_RANGE = "rts-fine-adjust-vertical-search-range"
+RTS_POWER_SEARCH_RANGE = "rts-power-search-range"
+RTS_POWER_SEARCH_ENABLED = "rts-power-search-enabled"
+
+ACTIVE_RTS = "active-rts"
+ACTIVE_DEVICE = "active-device"
+
+LOG_DOWNLOAD = "log-download"
+LOG_DROPDOWN = "log-dropdown"
+DOWNLOAD_LOG = "download-log"
+DELETE_LOG = "delete-log"
+CLOSE_LOG_MODAL_BUTTON = "close-log-modal-button"
+LOG_MODAL = "log-modal"

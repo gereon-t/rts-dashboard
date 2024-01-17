@@ -1,10 +1,13 @@
 import logging
+import time
+from typing import Callable
 
-from dash import ALL, MATCH, Input, Output, State, html
+from dash import ALL, MATCH, Input, Output, State, ctx
 
-from app import api, app, device_cache, models
+from app import api, app, models
 from app.components import ids
 from app.components.rts import render_rts
+from app.utils import DeviceNotFound, get_device_from_storage
 
 logger = logging.getLogger("root")
 
@@ -14,10 +17,71 @@ STATUS_ICONS = {
 }
 
 
-def get_current_rts_list():
+def handle_api_request(
+    api_func: Callable[[models.Device, int], bool],
+    trigger_id: dict,
+    device_storage: dict[dict],
+) -> None:
+    """
+    Helper function to handle API requests.
+
+    Args:
+        api_func (Callable[[models.Device, int], bool]): The API function to call
+        trigger_id (dict): The information about the button that was clicked
+        device_storage (dict[dict]): The current device storage
+
+    """
+    try:
+        device, rts_id = get_device_and_rts_id(
+            trigger_id=trigger_id, device_storage=device_storage
+        )
+        api_success = api_func(device=device, rts_id=rts_id)
+    except DeviceNotFound:
+        logger.error("Failed to get device")
+
+    if not api_success:
+        logger.error("API request to device failed.")
+
+    return
+
+
+def get_device_and_rts_id(
+    trigger_id: dict, device_storage: dict[dict]
+) -> tuple[models.Device, int]:
+    """
+    This function returns the device and RTS ID of the button that was clicked.
+
+    Raises:
+        DeviceNotFound: If the device with the given ID is not in the device storage
+
+    Args:
+        n_clicks (int): The number of times the button has been clicked
+        trigger_id (dict): The information about the button that was clicked
+
+    Returns:
+        tuple[models.Device, int]: The device and RTS ID of the button that was clicked
+    """
+    device_id = trigger_id["device_id"]
+    rts_id = trigger_id["rts_id"]
+
+    device = get_device_from_storage(device_id=device_id, device_storage=device_storage)
+    return device, rts_id
+
+
+def render_rts_list(device_storage: dict[dict]):
+    """
+    This function renders the RTS list from the device storage.
+
+    Args:
+        device_storage (dict[dict]): The current device storage
+
+    Returns:
+        list[html.Div]: The RTS list
+    """
     rts_children = []
 
-    for device in device_cache.get_all():
+    for device_dict in device_storage.values():
+        device = models.Device(**device_dict)
         device_rts = api.get_rts(device)
 
         for rts in device_rts:
@@ -27,119 +91,169 @@ def get_current_rts_list():
 
 
 @app.callback(
-    Output(
-        {"type": "dummy-output", "rts_id": MATCH, "device_id": MATCH},
-        "children",
-        allow_duplicate=True,
-    ),
-    Input({"type": "rts-test", "rts_id": MATCH, "device_id": MATCH}, "n_clicks"),
-    Input({"type": "rts-test", "rts_id": MATCH, "device_id": MATCH}, "id"),
+    Output(ids.RTS_LIST, "children", allow_duplicate=True),
+    Input(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def test_rts_connection(_: int, trigger_info: dict):
-    logger.info(
-        "Testing RTS %i of device %i", trigger_info["rts_id"], trigger_info["device_id"]
+def update_rts_list(device_storage: dict[dict]):
+    return render_rts_list(device_storage)
+
+
+@app.callback(
+    Output(ids.DUMMY_OUTPUT, "children", allow_duplicate=True),
+    Input({"type": "rts-test", "rts_id": ALL, "device_id": ALL}, "n_clicks"),
+    State(ids.DEVICE_STORAGE, "data"),
+    prevent_initial_call=True,
+)
+def test_rts_connection(n_clicks: list[int], device_storage: dict[dict]):
+    """
+    This callback is triggered when the user clicks on the "Test" button for a RTS.
+
+    It will test the connection to the RTS and update the status icon.
+
+    Args:
+        n_clicks (list[int]): The number of times the button has been clicked
+        device_storage (dict[dict]): The current device storage
+    """
+    if not any(n_clicks):
+        return
+
+    handle_api_request(
+        api_func=api.validate_rts_connection,
+        trigger_id=ctx.triggered_id,
+        device_storage=device_storage,
     )
-    device_id = trigger_info["device_id"]
-    rts_id = trigger_info["rts_id"]
-    db_device = device_cache.get(device_id)
-
-    if db_device is None:
-        logger.error("Failed to get device with id: %s", device_id)
-        return app.get_asset_url("status-error.svg")
-
-    device = models.Device(**db_device.__dict__)
-    api.validate_rts_connection(device=device, rts_id=rts_id)
 
 
 @app.callback(
-    Output(
-        {"type": "rts-tracking-status-icon", "rts_id": MATCH, "device_id": MATCH},
-        "src",
-        allow_duplicate=True,
-    ),
-    Input({"type": "rts-start", "rts_id": MATCH, "device_id": MATCH}, "n_clicks"),
-    Input({"type": "rts-start", "rts_id": MATCH, "device_id": MATCH}, "id"),
+    Output(ids.DUMMY_OUTPUT, "children", allow_duplicate=True),
+    Input({"type": "rts-start", "rts_id": ALL, "device_id": ALL}, "n_clicks"),
+    State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def start_tracking(_: int, trigger_info: dict):
-    device_id = trigger_info["device_id"]
-    rts_id = trigger_info["rts_id"]
-    device = device_cache.get(device_id)
-    api.start_tracking(device=device, rts_id=rts_id)
-    return app.get_asset_url("status-success.svg")
+def start_tracking(n_clicks: list[int], device_storage: dict[dict]):
+    """
+    This callback is triggered when the user clicks on the "Start" button for a RTS.
+
+    It will start tracking for the RTS by sending an API request to the device.
+
+    Args:
+        n_clicks (list[int]): The number of times the button has been clicked
+        device_storage (dict[dict]): The current device storage
+    """
+    if not any(n_clicks):
+        return
+
+    handle_api_request(
+        api_func=api.start_tracking,
+        trigger_id=ctx.triggered_id,
+        device_storage=device_storage,
+    )
 
 
 @app.callback(
-    Output(
-        {"type": "rts-tracking-status-icon", "rts_id": MATCH, "device_id": MATCH},
-        "src",
-        allow_duplicate=True,
-    ),
-    Input({"type": "rts-dummy", "rts_id": MATCH, "device_id": MATCH}, "n_clicks"),
-    Input({"type": "rts-dummy", "rts_id": MATCH, "device_id": MATCH}, "id"),
+    Output(ids.DUMMY_OUTPUT, "children", allow_duplicate=True),
+    Input({"type": "rts-dummy", "rts_id": ALL, "device_id": ALL}, "n_clicks"),
+    State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def start_dummy_tracking(_: int, trigger_info: dict):
-    device_id = trigger_info["device_id"]
-    rts_id = trigger_info["rts_id"]
-    device = device_cache.get(device_id)
-    api.start_dummy_tracking(device=device, rts_id=rts_id)
-    return app.get_asset_url("status-success.svg")
+def start_dummy_tracking(n_clicks: list[int], device_storage: dict[dict]):
+    """
+    This callback is triggered when the user clicks on the "Start Dummy Tracking" button for a RTS.
+
+    It will start fake tracking for the RTS by sending an API request to the device.
+
+    Args:
+        n_clicks (list[int]): The number of times the button has been clicked
+        device_storage (dict[dict]): The current device storage
+    """
+    if not any(n_clicks):
+        return
+
+    handle_api_request(
+        api_func=api.start_dummy_tracking,
+        trigger_id=ctx.triggered_id,
+        device_storage=device_storage,
+    )
 
 
 @app.callback(
-    Output(
-        {"type": "rts-tracking-status-icon", "rts_id": MATCH, "device_id": MATCH},
-        "src",
-        allow_duplicate=True,
-    ),
-    Input({"type": "rts-stop", "rts_id": MATCH, "device_id": MATCH}, "n_clicks"),
-    Input({"type": "rts-stop", "rts_id": MATCH, "device_id": MATCH}, "id"),
+    Output(ids.DUMMY_OUTPUT, "children", allow_duplicate=True),
+    Input({"type": "rts-stop", "rts_id": ALL, "device_id": ALL}, "n_clicks"),
+    State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def stop_tracking(_: int, trigger_info: dict):
-    device_id = trigger_info["device_id"]
-    rts_id = trigger_info["rts_id"]
-    device = device_cache.get(device_id)
-    api.stop_tracking(device=device, rts_id=rts_id)
-    return app.get_asset_url("status-unknown.svg")
+def stop_tracking(n_clicks: list[int], device_storage: dict[dict]):
+    """
+    This callback is triggered when the user clicks on the "Stop" button for a RTS.
+
+    It will stop tracking for the RTS by sending an API request to the device.
+
+    Args:
+        n_clicks (list[int]): The number of times the button has been clicked
+        device_storage (dict[dict]): The current device storage
+    """
+    if not any(n_clicks):
+        return
+
+    handle_api_request(
+        api_func=api.stop_tracking,
+        trigger_id=ctx.triggered_id,
+        device_storage=device_storage,
+    )
 
 
 @app.callback(
-    Output(
-        {"type": "dummy-output", "rts_id": MATCH, "device_id": MATCH},
-        "children",
-        allow_duplicate=True,
-    ),
-    Input({"type": "rts-change-face", "rts_id": MATCH, "device_id": MATCH}, "n_clicks"),
-    Input({"type": "rts-change-face", "rts_id": MATCH, "device_id": MATCH}, "id"),
+    Output(ids.DUMMY_OUTPUT, "children", allow_duplicate=True),
+    Input({"type": "rts-change-face", "rts_id": ALL, "device_id": ALL}, "n_clicks"),
+    State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def change_face(_: int, trigger_info: dict):
-    device_id = trigger_info["device_id"]
-    rts_id = trigger_info["rts_id"]
-    device = device_cache.get(device_id)
-    api.change_face(device=device, rts_id=rts_id)
-    return ""
+def change_face(n_clicks: list[int], device_storage: dict[dict]):
+    """
+    This callback is triggered when the user clicks on the "Change Face" button for a RTS.
+
+    It will change the face of the RTS by sending an API request to the device.
+
+    Args:
+        n_clicks (list[int]): The number of times the button has been clicked
+        device_storage (dict[dict]): The current device storage
+    """
+    if not any(n_clicks):
+        return
+
+    handle_api_request(
+        api_func=api.change_face,
+        trigger_id=ctx.triggered_id,
+        device_storage=device_storage,
+    )
 
 
 @app.callback(
     Output(ids.RTS_LIST, "children", allow_duplicate=True),
     Input({"type": "rts-remove", "rts_id": ALL, "device_id": ALL}, "n_clicks"),
-    Input({"type": "rts-remove", "rts_id": ALL, "device_id": ALL}, "id"),
+    State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def remove_rts(n_clicks: int, trigger_info: dict):
-    if any(n_clicks):
-        button_index = next(
-            (i for i in range(len(n_clicks)) if n_clicks[i] is not None), None
-        )
-        device_id = trigger_info[button_index]["device_id"]
-        rts_id = trigger_info[button_index]["rts_id"]
-        device = device_cache.get(device_id)
-        api.delete_rts(device=device, rts_id=rts_id)
-    return get_current_rts_list()
+def remove_rts(n_clicks: list[int], device_storage: dict[dict]):
+    """
+    This callback is triggered when the user clicks on the "Remove" button for a RTS.
+
+    It will remove the RTS from the device by sending an API request to the device.
+
+    Args:
+        n_clicks (list[int]): The number of times the button has been clicked
+        device_storage (dict[dict]): The current device storage
+    """
+    if not any(n_clicks):
+        return render_rts_list(device_storage)
+
+    handle_api_request(
+        api_func=api.delete_rts,
+        trigger_id=ctx.triggered_id,
+        device_storage=device_storage,
+    )
+    return render_rts_list(device_storage)
 
 
 @app.callback(
@@ -152,6 +266,9 @@ def remove_rts(n_clicks: int, trigger_info: dict):
     Output(
         {"type": "rts-position-count", "rts_id": MATCH, "device_id": MATCH}, "children"
     ),
+    Output(
+        {"type": "rts-position-storage", "rts_id": MATCH, "device_id": MATCH}, "data"
+    ),
     Input(
         {"type": "rts-tracking-status-interval", "rts_id": MATCH, "device_id": MATCH},
         "n_intervals",
@@ -160,18 +277,41 @@ def remove_rts(n_clicks: int, trigger_info: dict):
         {"type": "rts-tracking-status-interval", "rts_id": MATCH, "device_id": MATCH},
         "id",
     ),
-    prevent_initial_call=True,
+    State(
+        {"type": "rts-position-storage", "rts_id": MATCH, "device_id": MATCH}, "data"
+    ),
+    State(ids.DEVICE_STORAGE, "data"),
 )
-def update_tracking_status(_: int, trigger_info: dict):
-    device_id = trigger_info["device_id"]
-    rts_id = trigger_info["rts_id"]
-    db_device = device_cache.get(device_id)
+def update_tracking_status(
+    _: int, trigger_info: dict, stored_position: dict, device_storage: dict[dict]
+):
+    """
+    This callback is triggered when the tracking status interval fires. It will update
+    the tracking status of the RTS every second by sending an API request to the device.
 
-    if db_device is None:
-        logger.error("Failed to get device with id: %s", device_id)
-        return app.get_asset_url("status-error.svg"), "Recorded Positions: 0"
+    Args:
+        _: The number of times the interval has fired
+        trigger_info (dict): The information about the button that was clicked
+        stored_position (dict): The current stored position
+        device_storage (dict[dict]): The current device storage
 
-    device = models.Device(**db_device.__dict__)
+    Returns:
+        tuple: The status icons for the connection and tracking status, the number of
+            recorded positions and the current stored position
+    """
+    try:
+        device, rts_id = get_device_and_rts_id(
+            trigger_id=trigger_info, device_storage=device_storage
+        )
+    except DeviceNotFound:
+        logger.error("Failed to get device")
+        return (
+            app.get_asset_url("status-error.svg"),
+            app.get_asset_url("status-error.svg"),
+            "0",
+            stored_position,
+        )
+
     tracking_response = api.get_tracking_status(device=device, rts_id=rts_id)
     connection_response = api.get_connection_status(device=device, rts_id=rts_id)
 
@@ -179,7 +319,45 @@ def update_tracking_status(_: int, trigger_info: dict):
     connection_status = connection_response["connected"]
     num_positions = f"Recorded Positions: {tracking_response['positions']}"
 
-    return STATUS_ICONS[connection_status], STATUS_ICONS[tracking_status], num_positions
+    if tracking_status:
+        position = {
+            k: v
+            for k, v in tracking_response.items()
+            if k in ["pos_x", "pos_y", "pos_z", "device"]
+        }
+        stored_position = position
+        stored_position["timestamp"] = time.time()
+    else:
+        stored_position = {
+            "timestamp": 0,
+            "device": "None",
+            "pos_x": 0,
+            "pos_y": 0,
+            "pos_z": 0,
+        }
+
+    return (
+        STATUS_ICONS[connection_status],
+        STATUS_ICONS[tracking_status],
+        num_positions,
+        stored_position,
+    )
+
+
+@app.callback(
+    Output(ids.RTS_POSITION_STORAGE, "data"),
+    Input({"type": "rts-position-storage", "rts_id": ALL, "device_id": ALL}, "data"),
+    prevent_initial_call=True,
+)
+def update_target_position(stored_positions: int):
+    if not stored_positions:
+        stored_positions = [
+            {"timestamp": 0, "pos_x": 0, "pos_y": 0, "pos_z": 0, "device": "None"}
+        ]
+
+    newest_position = max(stored_positions, key=lambda x: x["timestamp"])
+
+    return newest_position
 
 
 @app.callback(
@@ -192,6 +370,19 @@ def update_tracking_status(_: int, trigger_info: dict):
     prevent_initial_call=True,
 )
 def toggle_modal(n1, n2, is_open):
+    """
+    This callback is triggered when the user clicks on the "Add RTS" button.
+
+    It will open or close the RTS modal.
+
+    Args:
+        n1 (int): The number of times the "Add RTS" button has been clicked
+        n2 (int): The number of times the "Close" button has been clicked
+        is_open (bool): Whether the RTS modal is open
+
+    Returns:
+        bool: Whether the RTS modal is open
+    """
     if n1 or n2:
         return not is_open
     return is_open
@@ -211,8 +402,8 @@ def toggle_modal(n1, n2, is_open):
     State(ids.RTS_STOPBITS_INPUT, "value"),
     State(ids.RTS_BYTESIZE_INPUT, "value"),
     State(ids.RTS_TIMEOUT_INPUT, "value"),
-    State(ids.RTS_LIST, "children"),
     State(ids.RTS_MODAL, "is_open"),
+    State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
 def rts_modal_actions(
@@ -225,10 +416,33 @@ def rts_modal_actions(
     rts_stopbits: int,
     rts_bytesize: int,
     rts_timeout: int,
-    current_rts: list[html.Div],
     modal_is_open: bool,
+    device_storage: dict[dict],
 ):
-    if (
+    """
+    This callback is triggered when the user clicks on the "Add" button of the RTS modal.
+
+    It will add the RTS to the device by sending an API request to the device.
+
+    Args:
+        n_clicks_create_rts (int): The number of times the "Add" button has been clicked
+        device_id (int): The ID of the device
+        rts_name (str): The name of the RTS
+        rts_port (str): The port of the RTS
+        rts_baudrate (int): The baudrate of the RTS
+        rts_parity (str): The parity of the RTS
+        rts_stopbits (int): The stopbits of the RTS
+        rts_bytesize (int): The bytesize of the RTS
+        rts_timeout (int): The timeout of the RTS
+        modal_is_open (bool): Whether the RTS modal is open
+        device_storage (dict[dict]): The current device storage
+
+    Returns:
+        bool: Whether the RTS modal is open
+        str: The alert message
+        bool: Whether the alert is open
+    """
+    if not (
         n_clicks_create_rts
         and rts_name
         and rts_port
@@ -238,71 +452,98 @@ def rts_modal_actions(
         and rts_bytesize
         and rts_timeout
     ):
-        db_device = device_cache.get(device_id)
-
-        if db_device is None:
-            logger.error("Failed to get device with id: %s", device_id)
-            return (
-                current_rts,
-                modal_is_open,
-                f"Failed to get device with id: {device_id} from database.",
-                True,
-            )
-
-        device = models.Device(**db_device.__dict__)
-
-        rts_api = models.RTS_APICreate(
-            name=rts_name,
-            port=rts_port,
-            baudrate=rts_baudrate,
-            parity=rts_parity,
-            stopbits=rts_stopbits,
-            bytesize=rts_bytesize,
-            timeout=rts_timeout,
+        return (
+            render_rts_list(device_storage),
+            modal_is_open,
+            "Inputs incomplete.",
+            True,
         )
 
-        added_rts = api.add_rts(device=device, rts=rts_api)
+    db_device = device_storage.get(str(device_id))
 
-        if added_rts is None:
-            return current_rts, modal_is_open, "API request to device failed.", True
+    if db_device is None:
+        return render_rts_list(device_storage), modal_is_open, "Device not found.", True
 
-        current_rts.append(render_rts(rts=added_rts, device=db_device))
-        return current_rts, not modal_is_open, "", False
+    device = models.Device(**db_device)
 
-    return current_rts, modal_is_open, "Inputs incomplete.", True
+    rts_api = models.RTS_APICreate(
+        name=rts_name,
+        port=rts_port,
+        baudrate=rts_baudrate,
+        parity=rts_parity,
+        stopbits=rts_stopbits,
+        bytesize=rts_bytesize,
+        timeout=rts_timeout,
+    )
+
+    added_rts = api.add_rts(device=device, rts=rts_api)
+
+    if added_rts is None:
+        return (
+            render_rts_list(device_storage),
+            modal_is_open,
+            "API request to device failed.",
+            True,
+        )
+
+    return render_rts_list(device_storage), not modal_is_open, "", False
 
 
 @app.callback(
     Output(ids.DUMMY_OUTPUT, "children", allow_duplicate=True),
     Input(ids.START_ALL_BUTTON, "n_clicks"),
+    State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def start_all(_: int):
-    devices = device_cache.get_all()
-    for device in devices:
-        device = models.Device(**device.__dict__)
+def start_all(_: int, device_storage: dict[dict]):
+    """
+    This callback is triggered when the user clicks on the "Start All" button.
+
+    It will start tracking for all RTS by sending an API request to the device.
+
+    Args:
+        _: The number of times the button has been clicked
+        device_storage (dict[dict]): The current device storage
+
+    Returns:
+        str: An empty string, to prevent the callback from returning None
+    """
+    for device_dict in device_storage.values():
+        device = models.Device(**device_dict)
 
         rts_list = api.get_rts(device)
         for rts in rts_list:
             api.start_tracking(device=device, rts_id=rts.id)
             logger.info("Started tracking for RTS %i", rts.id)
 
-    return ""
+    return [""]
 
 
 @app.callback(
     Output(ids.DUMMY_OUTPUT, "children", allow_duplicate=True),
     Input(ids.STOP_ALL_BUTTON, "n_clicks"),
+    State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def stop_all(_: int):
-    devices = device_cache.get_all()
-    for device in devices:
-        device = models.Device(**device.__dict__)
+def stop_all(_: int, device_storage: dict[dict]):
+    """
+    This callback is triggered when the user clicks on the "Stop All" button.
+
+    It will stop tracking for all RTS by sending an API request to the device.
+
+    Args:
+        _: The number of times the button has been clicked
+        device_storage (dict[dict]): The current device storage
+
+    Returns:
+        str: An empty string, to prevent the callback from returning None
+    """
+    for device_dict in device_storage.values():
+        device = models.Device(**device_dict)
 
         rts_list = api.get_rts(device)
         for rts in rts_list:
             api.stop_tracking(device=device, rts_id=rts.id)
             logger.info("Stopped tracking for RTS %i", rts.id)
 
-    return ""
+    return [""]

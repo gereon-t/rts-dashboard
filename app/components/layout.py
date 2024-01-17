@@ -1,17 +1,23 @@
 import dash_bootstrap_components as dbc
-from dash import html
+from dash import dcc, html
 
 from app.components import ids
 from app.components.device import create_device_list
 from app.components.device_modal import device_form_modal
+from app.components.log_modal import create_log_modal
 from app.components.rts import rts_listgroup
 from app.components.rts_modal import rts_form_modal
+from app.components.settings_modal import create_settings_modal
 
 
 def create_layout() -> html.Div:
     return html.Div(
         className="app-container",
         children=[
+            dcc.Store(id=ids.DEVICE_STORAGE, storage_type="local", data={}),
+            dcc.Store(id=ids.RTS_POSITION_STORAGE, storage_type="session"),
+            dcc.Store(id=ids.ACTIVE_RTS),
+            dcc.Store(id=ids.ACTIVE_DEVICE),
             create_header(),
             create_content(),
             create_footer(),
@@ -81,12 +87,6 @@ def create_content() -> html.Div:
                                 color="primary",
                                 outline=True,
                             ),
-                            dbc.Button(
-                                "Refresh",
-                                id=ids.REFRESH,
-                                color="primary",
-                                outline=True,
-                            ),
                         ]
                     ),
                 ],
@@ -94,6 +94,8 @@ def create_content() -> html.Div:
             device_form_modal(),
             rts_form_modal(),
             create_device_list(),
+            create_settings_modal(),
+            create_log_modal(),
             html.Div(className="tab-divider"),
             html.P("", id=ids.DUMMY_OUTPUT, style={"display": "none"}),
             html.Div(

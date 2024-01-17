@@ -5,8 +5,6 @@ from dash import dcc, html
 
 from app import models
 from app.components import ids
-from app.components.log_modal import create_log_modal
-from app.components.settings_modal import create_settings_modal
 
 logger = logging.getLogger("root")
 
@@ -19,6 +17,14 @@ def render_rts(rts: models.RTS_API, device: models.Device) -> html.Div:
     return html.Div(
         className="list-item-container",
         children=[
+            dcc.Store(
+                data={"timestamp": 0, "pos_x": 0, "pos_y": 0, "pos_z": 0},
+                id={
+                    "type": "rts-position-storage",
+                    "rts_id": rts.id,
+                    "device_id": device.id,
+                },
+            ),
             html.Div(
                 className="item-left-section",
                 children=[
@@ -195,13 +201,6 @@ def rts_actions(rts_id: int, device_id: int) -> html.Div:
                     ),
                 ],
                 vertical=True,
-            ),
-            create_log_modal(rts_id=rts_id, device_id=device_id),
-            create_settings_modal(rts_id=rts_id, device_id=device_id),
-            html.P(
-                "",
-                id={"type": "dummy-output", "rts_id": rts_id, "device_id": device_id},
-                style={"display": "none"},
             ),
         ]
     )

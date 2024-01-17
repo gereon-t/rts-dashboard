@@ -57,6 +57,19 @@ class TrackingSettings(BaseModel):
     power_search: bool = True
 
     @property
+    def modal_tuple(self) -> tuple:
+        return (
+            self.tmc_measurement_mode,
+            self.tmc_inclination_mode,
+            self.edm_measurement_mode,
+            self.prism_type,
+            self.fine_adjust_horizontal_search_range,
+            self.fine_adjust_vertical_search_range,
+            self.power_search_max_range,
+            self.power_search,
+        )
+
+    @property
     def measurement_mode_options(self) -> list[dict]:
         return [
             {"label": "Default Distance", "value": 1},
