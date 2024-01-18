@@ -49,7 +49,7 @@ def create_header() -> html.Header:
                         id=ids.CURRENT_TARGET_POSITION,
                     ),
                     html.Div(
-                        "(None)",
+                        "(-)",
                         className="current-target-device",
                         id=ids.CURRENT_TARGET_DEVICE,
                     ),
