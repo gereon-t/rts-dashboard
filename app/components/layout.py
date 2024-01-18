@@ -39,6 +39,22 @@ def create_header() -> html.Header:
                     ),
                 ],
             ),
+            html.Div(
+                children=[
+                    html.Img(src="/assets/target.svg", className="target-icon"),
+                    html.Div(
+                        "0.00, 0.00, 0.00",
+                        className="current-target-position",
+                        id=ids.CURRENT_TARGET_POSITION,
+                    ),
+                    html.Div(
+                        "(None)",
+                        className="current-target-device",
+                        id=ids.CURRENT_TARGET_DEVICE,
+                    ),
+                ],
+                className="right-section",
+            ),
         ],
     )
 

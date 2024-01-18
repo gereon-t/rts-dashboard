@@ -67,3 +67,6 @@ DOWNLOAD_LOG = "download-log"
 DELETE_LOG = "delete-log"
 CLOSE_LOG_MODAL_BUTTON = "close-log-modal-button"
 LOG_MODAL = "log-modal"
+
+CURRENT_TARGET_POSITION = "current-target-position"
+CURRENT_TARGET_DEVICE = "current-target-device"

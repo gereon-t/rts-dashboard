@@ -125,6 +125,21 @@ def render_rts(rts: models.RTS_API, device: models.Device) -> html.Div:
                         ],
                         className="item-position-row",
                     ),
+                    html.Div(
+                        children=[
+                            html.P("Target Position:", className="item-position-label"),
+                            html.P(
+                                "0.00, 0.00, 0.00",
+                                className="item-position-field",
+                                id={
+                                    "type": "rts-target-position",
+                                    "rts_id": rts.id,
+                                    "device_id": device.id,
+                                },
+                            ),
+                        ],
+                        className="item-position-row",
+                    ),
                 ],
             ),
             rts_actions(rts_id=rts.id, device_id=device.id),

@@ -17,6 +17,47 @@ STATUS_ICONS = {
 }
 
 
+def get_newest_position(tracking_response: dict, rts_target_position: dict) -> dict:
+    """
+    This function returns the newest position from the tracking response and the current
+    stored position.
+
+    Args:
+        tracking_response (dict): The tracking response from the device
+        rts_target_position (dict): The current stored position
+
+    Returns:
+        dict: The newest position
+    """
+    empty_position = {
+        "timestamp": 0,
+        "device": "None",
+        "pos_x": 0,
+        "pos_y": 0,
+        "pos_z": 0,
+    }
+    current_position = rts_target_position or empty_position
+
+    if tracking_response is None:
+        return current_position
+
+    tracking_status = tracking_response["active"]
+
+    if tracking_status:
+        position = {
+            k: v
+            for k, v in tracking_response.items()
+            if k in ["timestamp", "pos_x", "pos_y", "pos_z", "device"]
+        }
+    else:
+        position = empty_position
+
+    if float(position["timestamp"]) > float(current_position["timestamp"]):
+        current_position = position
+
+    return current_position
+
+
 def handle_api_request(
     api_func: Callable[[models.Device, int], bool],
     trigger_id: dict,
@@ -267,6 +308,9 @@ def remove_rts(n_clicks: list[int], device_storage: dict[str, dict]):
         {"type": "rts-position-count", "rts_id": MATCH, "device_id": MATCH}, "children"
     ),
     Output(
+        {"type": "rts-target-position", "rts_id": MATCH, "device_id": MATCH}, "children"
+    ),
+    Output(
         {"type": "rts-position-storage", "rts_id": MATCH, "device_id": MATCH}, "data"
     ),
     Input(
@@ -277,13 +321,16 @@ def remove_rts(n_clicks: list[int], device_storage: dict[str, dict]):
         {"type": "rts-tracking-status-interval", "rts_id": MATCH, "device_id": MATCH},
         "id",
     ),
+    State(ids.DEVICE_STORAGE, "data"),
     State(
         {"type": "rts-position-storage", "rts_id": MATCH, "device_id": MATCH}, "data"
     ),
-    State(ids.DEVICE_STORAGE, "data"),
 )
 def update_tracking_status(
-    _: int, trigger_info: dict, stored_position: dict, device_storage: dict[str, dict]
+    _: int,
+    trigger_info: dict,
+    device_storage: dict[str, dict],
+    rts_target_position: dict,
 ):
     """
     This callback is triggered when the tracking status interval fires. It will update
@@ -292,7 +339,6 @@ def update_tracking_status(
     Args:
         _: The number of times the interval has fired
         trigger_info (dict): The information about the button that was clicked
-        stored_position (dict): The current stored position
         device_storage (dict[str, dict]): The current device storage
 
     Returns:
@@ -309,63 +355,63 @@ def update_tracking_status(
             app.get_asset_url("status-error.svg"),
             app.get_asset_url("status-error.svg"),
             "0",
-            stored_position,
+            "0.00, 0.00, 0.00",
+            {},
         )
 
     tracking_response = api.get_tracking_status(device=device, rts_id=rts_id)
     connection_response = api.get_connection_status(device=device, rts_id=rts_id)
 
-    if tracking_response is None or connection_response is None:
-        return (
-            app.get_asset_url("status-error.svg"),
-            app.get_asset_url("status-error.svg"),
-            "0",
-            stored_position,
-        )
-
-    tracking_status = tracking_response["active"]
     connection_status = connection_response["connected"]
+    tracking_status = tracking_response["active"]
     num_positions = tracking_response["positions"]
 
-    if tracking_status:
-        position = {
-            k: v
-            for k, v in tracking_response.items()
-            if k in ["pos_x", "pos_y", "pos_z", "device"]
-        }
-        stored_position = position
-        stored_position["timestamp"] = time.time()
-    else:
-        stored_position = {
-            "timestamp": 0,
-            "device": "None",
-            "pos_x": 0,
-            "pos_y": 0,
-            "pos_z": 0,
-        }
+    newest_position = get_newest_position(tracking_response, rts_target_position)
+
+    position_str = f"{newest_position['pos_x']:.2f}, {newest_position['pos_y']:.2f}, {newest_position['pos_z']:.2f}"
 
     return (
         STATUS_ICONS[connection_status],
         STATUS_ICONS[tracking_status],
         num_positions,
-        stored_position,
+        position_str,
+        newest_position,
     )
 
 
 @app.callback(
     Output(ids.RTS_POSITION_STORAGE, "data"),
     Input({"type": "rts-position-storage", "rts_id": ALL, "device_id": ALL}, "data"),
+    State(ids.RTS_POSITION_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def update_target_position(stored_positions: list[dict]):
-    if not stored_positions:
-        stored_positions = [
-            {"timestamp": 0, "pos_x": 0, "pos_y": 0, "pos_z": 0, "device": "None"}
-        ]
+def update_target_position(rts_positions: list[dict], stored_position: dict):
+    if not stored_position:
+        stored_position = {
+            "timestamp": 0,
+            "pos_x": 0,
+            "pos_y": 0,
+            "pos_z": 0,
+            "device": "None",
+        }
 
-    newest_position = max(stored_positions, key=lambda x: x["timestamp"])
+    newest_position = max(rts_positions, key=lambda x: x["timestamp"])
 
-    return newest_position
+    if float(newest_position["timestamp"]) > float(stored_position["timestamp"]):
+        return newest_position
+
+    return stored_position
+
+
+@app.callback(
+    Output(ids.CURRENT_TARGET_POSITION, "children"),
+    Output(ids.CURRENT_TARGET_DEVICE, "children"),
+    Input(ids.RTS_POSITION_STORAGE, "data"),
+)
+def update_target_text(newest_position: dict):
+    position_str = f"{float(newest_position['pos_x']):.2f}, {float(newest_position['pos_y']):.2f}, {float(newest_position['pos_z']):.2f}"
+    device_str = f"({newest_position['device']})"
+    return position_str, device_str
 
 
 @app.callback(
