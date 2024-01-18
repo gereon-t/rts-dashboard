@@ -13,7 +13,7 @@ from app.components.device import render_device
 from app.utils import (
     DeviceNotFound,
     get_button_index,
-    get_current_dropdown_options,
+    devices_to_dropdown_options,
     get_device_from_storage,
 )
 
@@ -139,7 +139,7 @@ def update_device_list(device_storage: dict[str, dict]):
         list[dict]: The updated device dropdown options
     """
     device_list = render_device_list(device_storage)
-    dropdown_options = get_current_dropdown_options(device_storage)
+    dropdown_options = devices_to_dropdown_options(device_storage)
 
     return device_list, dropdown_options
 

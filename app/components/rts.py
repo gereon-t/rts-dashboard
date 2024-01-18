@@ -105,20 +105,29 @@ def render_rts(rts: models.RTS_API, device: models.Device) -> html.Div:
                 ],
             ),
             html.Div(className="item-divider"),
-            html.P(
-                "Recorded Positions: 0",
-                id={
-                    "type": "rts-position-count",
-                    "rts_id": rts.id,
-                    "device_id": device.id,
-                },
-            ),
             html.Div(
                 className="item-right-section",
                 children=[
-                    rts_actions(rts_id=rts.id, device_id=device.id),
+                    html.Div(
+                        children=[
+                            html.P(
+                                "Recorded Positions:", className="item-position-label"
+                            ),
+                            html.P(
+                                0,
+                                className="item-position-count",
+                                id={
+                                    "type": "rts-position-count",
+                                    "rts_id": rts.id,
+                                    "device_id": device.id,
+                                },
+                            ),
+                        ],
+                        className="item-position-row",
+                    ),
                 ],
             ),
+            rts_actions(rts_id=rts.id, device_id=device.id),
         ],
         id={"type": "rts-item", "rts_id": rts.id, "device_id": device.id},
     )
@@ -187,14 +196,14 @@ def rts_actions(rts_id: int, device_id: int) -> html.Div:
                                     "device_id": device_id,
                                 },
                             ),
-                            # dbc.DropdownMenuItem(
-                            #     "Dummy Tracking",
-                            #     id={
-                            #         "type": "rts-dummy",
-                            #         "rts_id": rts_id,
-                            #         "device_id": device_id,
-                            #     },
-                            # ),
+                            dbc.DropdownMenuItem(
+                                "Dummy Tracking",
+                                id={
+                                    "type": "rts-dummy",
+                                    "rts_id": rts_id,
+                                    "device_id": device_id,
+                                },
+                            ),
                         ],
                         label="Actions",
                         group=True,

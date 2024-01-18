@@ -4,7 +4,7 @@ from dash import ALL, Input, Output, State, ctx
 
 from app import api, app
 from app.components import ids
-from app.utils import DeviceNotFound, get_device_from_storage
+from app.utils import DeviceNotFound, get_device_from_storage, logs_to_dropdown_options
 
 logger = logging.getLogger("root")
 
@@ -66,9 +66,7 @@ def toggle_modal(
         return modal_state, options, device_id, rts_id
 
     log_list = api.get_logs(device=device, rts_id=rts_id)
-    options = [
-        {"label": f"{log.name}: {log.path}", "value": log.id} for log in log_list
-    ]
+    options = logs_to_dropdown_options(log_list)
 
     return modal_state, options, device_id, rts_id
 
@@ -117,19 +115,13 @@ def download_log(
         )
     except DeviceNotFound:
         logger.error("Unable to get device %i", device_id)
-        log_content = b"Unable to get tracking settings"
-        return is_open, dict(
-            content=str(log_content, encoding="utf-8"), filename="FAILED.txt"
-        )
+        return is_open, None
 
     log_content = api.download_log(device=device, log_id=log_id)
 
     if log_content is None:
         logger.error("Failed to download log")
-        log_content = b"Failed to download log from server"
-        return is_open, dict(
-            content=str(log_content, encoding="utf-8"), filename="FAILED.txt"
-        )
+        return is_open, None
 
     return not is_open, dict(
         content=str(log_content, encoding="utf-8"), filename=f"log_{log_id}.txt"
@@ -191,7 +183,5 @@ def delete_log(
     logger.info("Deleted log %i from rts %i on device %i", log_id, rts_id, device_id)
 
     log_list = api.get_logs(device, rts_id)
-    options = [
-        {"label": f"{log.name}: {log.path}", "value": log.id} for log in log_list
-    ]
+    options = logs_to_dropdown_options(log_list)
     return options

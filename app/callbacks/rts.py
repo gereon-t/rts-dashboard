@@ -325,7 +325,7 @@ def update_tracking_status(
 
     tracking_status = tracking_response["active"]
     connection_status = connection_response["connected"]
-    num_positions = f"Recorded Positions: {tracking_response['positions']}"
+    num_positions = tracking_response["positions"]
 
     if tracking_status:
         position = {

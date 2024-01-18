@@ -50,6 +50,10 @@
     font-weight: 400;
 }
 
+.item-name-container {
+    width: 200px;
+}
+
 .item-status-label {
     font-size: 16px;
     color: black;
@@ -84,15 +88,36 @@
     background-color: rgb(240, 240, 240);
 }
 
-.item-status-row {
+.item-status-row,
+.item-position-row {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    width: 200px;
 }
+
 
 .item-divider {
     border-left: 1px solid #b1b1b1;
     height: 100px;
     position: relative;
+}
+
+@media only screen and (max-width: 1100px) {
+
+    .item-divider {
+        display: none;
+    }
+
+    .item-status-row {
+        display: none;
+    }
+}
+
+@media only screen and (max-width: 800px) {
+
+    .item-position-row {
+        display: none;
+    }
 }

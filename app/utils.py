@@ -5,12 +5,17 @@ from app import models
 logger = logging.getLogger("root")
 
 
-def to_dropdown_options(device_storage: dict[str, dict]) -> list[dict]:
-    devices = [models.Device(**device) for device in device_storage.values()]
-    return [{"label": device.name, "value": device.id} for device in devices]
+def logs_to_dropdown_options(log_list: list[models.Log]) -> list[dict]:
+    return [
+        {
+            "label": f"{'Active' if log.active else 'Inactive'} {log.name}: {log.path}",
+            "value": log.id,
+        }
+        for log in log_list
+    ]
 
 
-def get_current_dropdown_options(device_storage: dict[str, dict]) -> list[dict]:
+def devices_to_dropdown_options(device_storage: dict[str, dict]) -> list[dict]:
     return [
         {"label": device["name"], "value": device["id"]}
         for device in device_storage.values()
