@@ -375,6 +375,15 @@ def update_tracking_status(
     tracking_response = api.get_tracking_status(device=device, rts_id=rts_id)
     connection_response = api.get_connection_status(device=device, rts_id=rts_id)
 
+    if None in [tracking_response, connection_response]:
+        return (
+            app.get_asset_url("status-error.svg"),
+            app.get_asset_url("status-error.svg"),
+            "0",
+            "0.00, 0.00, 0.00",
+            DEFAULT_POSITION,
+        )
+
     connection_status = connection_response["connected"]
     tracking_status = tracking_response["active"]
     num_positions = tracking_response["positions"]
