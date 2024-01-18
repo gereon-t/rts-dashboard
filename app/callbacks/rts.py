@@ -524,7 +524,7 @@ def start_all(_: int, device_storage: dict[str, dict]):
             api.start_tracking(device=device, rts_id=rts.id)
             logger.info("Started tracking for RTS %i", rts.id)
 
-    return [""]
+    return
 
 
 @app.callback(
@@ -554,4 +554,4 @@ def stop_all(_: int, device_storage: dict[str, dict]):
             api.stop_tracking(device=device, rts_id=rts.id)
             logger.info("Stopped tracking for RTS %i", rts.id)
 
-    return [""]
+    return

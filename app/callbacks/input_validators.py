@@ -7,7 +7,16 @@ from app import app
 from app.components import ids
 
 
-def validate_ip_address(ip_string) -> bool:
+def validate_ip_address(ip_string: str) -> bool:
+    """
+    Check if the given string is a valid IP address.
+
+    Args:
+        ip_string (str): The string to check.
+
+    Returns:
+        bool: True if the string is a valid IP address, False otherwise.
+    """
     try:
         ipaddress.ip_address(ip_string)
         return True
@@ -16,6 +25,15 @@ def validate_ip_address(ip_string) -> bool:
 
 
 def validate_port(port_number: int) -> bool:
+    """
+    Check if the given number is a valid port number.
+
+    Args:
+        port_number (int): The number to check.
+
+    Returns:
+        bool: True if the number is a valid port number, False otherwise.
+    """
     if port_number % 1 != 0:
         return False
     return 0 < port_number <= 65535
@@ -28,6 +46,16 @@ def validate_port(port_number: int) -> bool:
     ],
 )
 def update_ip_form(text: str) -> Tuple[bool, bool]:
+    """
+    This callback is triggered when the input value of the IP address input field changes.
+
+    Args:
+        text (str): The value of the IP address input field.
+
+    Returns:
+        Tuple[bool, bool]: A tuple of two boolean values. The first value indicates if the
+        input is valid, the second value indicates if the input is invalid.
+    """
     if not text:
         return False, False
 
@@ -45,6 +73,16 @@ def update_ip_form(text: str) -> Tuple[bool, bool]:
     ],
 )
 def update_port_form(number: int) -> Tuple[bool, bool]:
+    """
+    This callback is triggered when the input value of the port input field changes.
+
+    Args:
+        number (int): The value of the port input field.
+
+    Returns:
+        Tuple[bool, bool]: A tuple of two boolean values. The first value indicates if the
+        input is valid, the second value indicates if the input is invalid.
+    """
     if not number:
         return False, False
 
