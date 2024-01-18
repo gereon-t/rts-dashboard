@@ -9,11 +9,18 @@ logger = logging.getLogger("root")
 
 
 def request(
-    device: models.DeviceCreate, method: str, path: str, json: Optional[dict] = None
+    device: models.DeviceCreate,
+    method: str,
+    path: str,
+    json: Optional[dict] = None,
+    timeout: float = 2.0,
 ) -> Union[requests.Response, None]:
     try:
         response = requests.request(
-            method, f"http://{device.ip}:{device.port}{path}", json=json, timeout=5
+            method,
+            f"http://{device.ip}:{device.port}{path}",
+            json=json,
+            timeout=timeout,
         )
 
         if response.status_code != 200:
@@ -31,7 +38,7 @@ def request(
 
 
 def validate_device_connection(device: models.DeviceCreate) -> bool:
-    response = request(device, "GET", "/")
+    response = request(device, "GET", "/", timeout=0.5)
 
     if response is None:
         return False

@@ -1,5 +1,4 @@
 import logging
-import time
 from typing import Callable
 
 from dash import ALL, MATCH, Input, Output, State, ctx
@@ -16,6 +15,14 @@ STATUS_ICONS = {
     False: app.get_asset_url("status-error.svg"),
 }
 
+DEFAULT_POSITION = {
+    "timestamp": 0.0,
+    "device": "-",
+    "pos_x": 0.0,
+    "pos_y": 0.0,
+    "pos_z": 0.0,
+}
+
 
 def get_newest_position(tracking_response: dict, rts_target_position: dict) -> dict:
     """
@@ -29,14 +36,7 @@ def get_newest_position(tracking_response: dict, rts_target_position: dict) -> d
     Returns:
         dict: The newest position
     """
-    empty_position = {
-        "timestamp": 0,
-        "device": "None",
-        "pos_x": 0,
-        "pos_y": 0,
-        "pos_z": 0,
-    }
-    current_position = rts_target_position or empty_position
+    current_position = rts_target_position or DEFAULT_POSITION
 
     if tracking_response is None:
         return current_position
@@ -50,7 +50,7 @@ def get_newest_position(tracking_response: dict, rts_target_position: dict) -> d
             if k in ["timestamp", "pos_x", "pos_y", "pos_z", "device"]
         }
     else:
-        position = empty_position
+        position = DEFAULT_POSITION
 
     if float(position["timestamp"]) > float(current_position["timestamp"]):
         current_position = position
@@ -137,6 +137,17 @@ def render_rts_list(device_storage: dict[str, dict]):
     prevent_initial_call=True,
 )
 def update_rts_list(device_storage: dict[str, dict]):
+    """
+    This callback is triggered when the device storage is updated.
+
+    It will re-render the RTS list.
+
+    Args:
+        device_storage (dict[str, dict]): The current device storage
+
+    Returns:
+        list[html.Div]: The updated RTS list
+    """
     return render_rts_list(device_storage)
 
 
@@ -307,9 +318,7 @@ def remove_rts(n_clicks: list[int], device_storage: dict[str, dict]):
     Output(
         {"type": "rts-position-count", "rts_id": MATCH, "device_id": MATCH}, "children"
     ),
-    Output(
-        {"type": "rts-target-position", "rts_id": MATCH, "device_id": MATCH}, "children"
-    ),
+    Output({"type": "rts-position", "rts_id": MATCH, "device_id": MATCH}, "children"),
     Output(
         {"type": "rts-position-storage", "rts_id": MATCH, "device_id": MATCH}, "data"
     ),
@@ -338,12 +347,16 @@ def update_tracking_status(
 
     Args:
         _: The number of times the interval has fired
-        trigger_info (dict): The information about the button that was clicked
+        trigger_info (dict): The information about the interval that fired
         device_storage (dict[str, dict]): The current device storage
+        rts_target_position (dict): The current stored position
 
     Returns:
-        tuple: The status icons for the connection and tracking status, the number of
-            recorded positions and the current stored position
+        str: The source of the serial status icon
+        str: The source of the tracking status icon
+        str: The number of recorded positions
+        str: The newest position as a string
+        dict: The newest position as a dict
     """
     try:
         device, rts_id = get_device_and_rts_id(
@@ -356,7 +369,7 @@ def update_tracking_status(
             app.get_asset_url("status-error.svg"),
             "0",
             "0.00, 0.00, 0.00",
-            {},
+            DEFAULT_POSITION,
         )
 
     tracking_response = api.get_tracking_status(device=device, rts_id=rts_id)
@@ -386,16 +399,24 @@ def update_tracking_status(
     prevent_initial_call=True,
 )
 def update_target_position(rts_positions: list[dict], stored_position: dict):
-    if not stored_position:
-        stored_position = {
-            "timestamp": 0,
-            "pos_x": 0,
-            "pos_y": 0,
-            "pos_z": 0,
-            "device": "None",
-        }
+    """
+    This callback is triggered when one of the RTS position storages is updated.
 
-    newest_position = max(rts_positions, key=lambda x: x["timestamp"])
+    It will update the global target position with the newest position.
+
+    Args:
+        rts_positions (list[dict]): The newest positions
+        stored_position (dict): The current stored position
+
+    Returns:
+        dict: The newest position
+    """
+    stored_position = stored_position or DEFAULT_POSITION
+
+    if not any(rts_positions):
+        return stored_position
+
+    newest_position = max(rts_positions, key=lambda x: float(x["timestamp"]))
 
     if float(newest_position["timestamp"]) > float(stored_position["timestamp"]):
         return newest_position
@@ -409,6 +430,19 @@ def update_target_position(rts_positions: list[dict], stored_position: dict):
     Input(ids.RTS_POSITION_STORAGE, "data"),
 )
 def update_target_text(newest_position: dict):
+    """
+    This callback is triggered when the target position storage is updated.
+
+    It will update the target position text in the header.
+
+    Args:
+        newest_position (dict): The newest position
+
+    Returns:
+        str: The newest position as a string
+        str: The device name
+    """
+    newest_position = newest_position or DEFAULT_POSITION
     position_str = f"{float(newest_position['pos_x']):.2f}, {float(newest_position['pos_y']):.2f}, {float(newest_position['pos_z']):.2f}"
     device_str = f"({newest_position['device']})"
     return position_str, device_str

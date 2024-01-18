@@ -30,26 +30,12 @@ services:
     image: gtombrink/rts-dashboard
     ports:
       - 8050:8050
-    environment:
-      - NETWORK=${NETWORK}
-      - PORT=${PORT}
     restart: unless-stopped
 ```
 
 ```bash
 docker-compose up -d
 ```
-
-You can now access the dashboard at http://localhost:8050.
-
-# Configuration
-
-The network scanner can be configured using environment variables stored in a .env file. The following options are available:
-
-| Option    | Description                          | Default            |
-| --------- | ------------------------------------ | ------------------ |
-| `NETWORK` | The network to scan for RTS devices. | `"192.168.0.0/24"` |
-| `PORT`    | The port to use for the RTS Server.  | `8000`             |
 
 You can now access the dashboard at http://localhost:8050.
 

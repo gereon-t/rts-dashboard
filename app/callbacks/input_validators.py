@@ -7,6 +7,23 @@ from app import app
 from app.components import ids
 
 
+def validate_ip_network(ip_string: str) -> bool:
+    """
+    Check if the given string is a valid IP network.
+
+    Args:
+        ip_string (str): The string to check.
+
+    Returns:
+        bool: True if the string is a valid IP network, False otherwise.
+    """
+    try:
+        ipaddress.ip_network(ip_string)
+        return True
+    except ValueError:
+        return False
+
+
 def validate_ip_address(ip_string: str) -> bool:
     """
     Check if the given string is a valid IP address.
@@ -72,7 +89,58 @@ def update_ip_form(text: str) -> Tuple[bool, bool]:
         Input(ids.DEVICE_PORT_INPUT, "value"),
     ],
 )
-def update_port_form(number: int) -> Tuple[bool, bool]:
+def update_device_port_form(number: int) -> Tuple[bool, bool]:
+    """
+    This callback is triggered when the input value of the port input field changes.
+
+    Args:
+        number (int): The value of the port input field.
+
+    Returns:
+        Tuple[bool, bool]: A tuple of two boolean values. The first value indicates if the
+        input is valid, the second value indicates if the input is invalid.
+    """
+    if not number:
+        return False, False
+
+    valid = validate_port(number)
+    return valid, not valid
+
+
+@app.callback(
+    [Output(ids.NETWORK_INPUT, "valid"), Output(ids.NETWORK_INPUT, "invalid")],
+    [
+        Input(ids.NETWORK_INPUT, "value"),
+    ],
+)
+def update_ip_network_form(text: str) -> Tuple[bool, bool]:
+    """
+    This callback is triggered when the input value of the IP network input field changes.
+
+    Args:
+        text (str): The value of the IP network input field.
+
+    Returns:
+        Tuple[bool, bool]: A tuple of two boolean values. The first value indicates if the
+        input is valid, the second value indicates if the input is invalid.
+    """
+    if not text:
+        return False, False
+
+    valid = validate_ip_network(text)
+    return valid, not valid
+
+
+@app.callback(
+    [
+        Output(ids.NETWORK_PORT_INPUT, "valid"),
+        Output(ids.NETWORK_PORT_INPUT, "invalid"),
+    ],
+    [
+        Input(ids.NETWORK_PORT_INPUT, "value"),
+    ],
+)
+def update_network_port_form(number: int) -> Tuple[bool, bool]:
     """
     This callback is triggered when the input value of the port input field changes.
 

@@ -8,17 +8,22 @@ from app import models
 logger = logging.getLogger("root")
 
 
-def create_device_list() -> dcc.Loading:
-    return dcc.Loading(
-        id=ids.LOADING,
-        children=dbc.ListGroup(children=[], id=ids.DEVICE_LIST),
-    )
+def create_device_list() -> dbc.ListGroup:
+    return dbc.ListGroup(children=[], id=ids.DEVICE_LIST)
 
 
 def render_device(device: models.Device) -> html.Div:
     device_item = html.Div(
         className="list-item-container",
         children=[
+            dcc.Interval(
+                id={
+                    "type": "device-status-interval",
+                    "device_id": device.id,
+                },
+                interval=1000,
+                n_intervals=0,
+            ),
             html.Div(
                 className="item-left-section",
                 children=[
@@ -78,18 +83,8 @@ def render_device(device: models.Device) -> html.Div:
 
 
 def device_action(device_id: int) -> html.Div:
-    return dbc.ButtonGroup(
-        [
-            dbc.Button(
-                "Test Connection",
-                color="primary",
-                id={"type": "device-test", "device_id": device_id},
-            ),
-            dbc.Button(
-                "Remove",
-                color="danger",
-                id={"type": "device-remove", "device_id": device_id},
-            ),
-        ],
-        vertical=True,
+    return dbc.Button(
+        "Remove",
+        color="danger",
+        id={"type": "device-remove", "device_id": device_id},
     )

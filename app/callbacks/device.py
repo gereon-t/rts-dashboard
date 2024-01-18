@@ -1,10 +1,5 @@
-import logging
-import os
-
 import dash_bootstrap_components as dbc
-import dotenv
-import networkscan
-from dash import ALL, MATCH, Input, Output, State, dcc, html
+from dash import ALL, MATCH, Input, Output, State, html, ctx
 
 from app import api, app, models
 from app.callbacks.input_validators import validate_ip_address, validate_port
@@ -28,59 +23,12 @@ def render_device_list(device_storage: dict[str, dict]) -> list[html.Div]:
     Returns:
         list[html.Div]: The device list
     """
-    return dcc.Loading(
-        id=ids.LOADING,
-        children=dbc.ListGroup(
-            children=[
-                render_device(models.Device(**device))
-                for device in device_storage.values()
-            ],
-            id=ids.DEVICE_LIST,
-        ),
+    return dbc.ListGroup(
+        children=[
+            render_device(models.Device(**device)) for device in device_storage.values()
+        ],
+        id=ids.DEVICE_LIST,
     )
-
-
-@app.callback(
-    Output({"type": "device-status-icon", "device_id": MATCH}, "src"),
-    Input({"type": "device-test", "device_id": ALL}, "n_clicks"),
-    Input({"type": "device-test", "device_id": ALL}, "id"),
-    State(ids.DEVICE_STORAGE, "data"),
-)
-def test_device_connection(
-    n_clicks: list[int | None],
-    trigger_info: list[dict],
-    device_storage: dict[str, dict],
-):
-    """
-    This callback is triggered when the user clicks on the "Test" button for a device.
-
-    It will update the status icon for the device to either a green or red light
-    depending on whether the device is reachable or not.
-
-    Args:
-        n_clicks (list[int | None]): The number of times the button has been clicked
-        trigger_info (list[dict]): The information about the button that was clicked
-        device_storage (list[dict]): The current device storage
-
-    Returns:
-        str: The URL of the icon to display
-    """
-    if not any(n_clicks):
-        return app.get_asset_url("status-unknown.svg")
-
-    button_index = get_button_index(n_clicks)
-    device_id = trigger_info[button_index]["device_id"]
-
-    try:
-        device = get_device_from_storage(device_id, device_storage)
-    except DeviceNotFound:
-        return app.get_asset_url("status-error.svg")
-
-    connection_status = api.validate_device_connection(device)
-    if connection_status:
-        return app.get_asset_url("status-success.svg")
-    else:
-        return app.get_asset_url("status-error.svg")
 
 
 @app.callback(
@@ -230,40 +178,41 @@ def device_modal_actions(
 
 
 @app.callback(
-    Output(ids.DEVICE_STORAGE, "data", allow_duplicate=True),
-    Input(ids.SCAN_DEVICES_BUTTON, "n_clicks"),
+    Output(
+        {"type": "device-status-icon", "device_id": MATCH}, "src", allow_duplicate=True
+    ),
+    Input({"type": "device-status-interval", "device_id": MATCH}, "n_intervals"),
     State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def scan_for_devices(_: int, device_storage: dict[str, dict]):
+def update_device_status_icon(_, device_storage: dict[str, dict]):
     """
-    This callback is triggered when the user clicks on the "Scan" button.
+    This callback is triggered by the device status interval.
 
-    It will scan the network for devices and add them to the device storage.
+    It will update the status icon for the device to either a green or red light
+    depending on whether the device is reachable or not.
 
     Args:
-        _: The number of times the button has been clicked
-        device_storage (list[dict]): The current device storage
+        device_storage (dict[dict]): The current device storage
 
     Returns:
-        list[dict]: The updated device storage
+        str: The URL of the icon to display
     """
-    dotenv.load_dotenv()
+    trigger_id = ctx.triggered_id
 
-    network = os.getenv("NETWORK", "192.168.0.0/24")
-    port = int(os.getenv("PORT", "8000"))
-    print(f"Scanning network {network} on port {port}")
-    logging.info("Scanning network %s on port %s", network, port)
-    scan = networkscan.Networkscan(network)
-    # This will cause problems if the scan takes longer than 30s"
-    scan.run()
+    if not trigger_id:
+        return app.get_asset_url("status-unknown.svg")
 
-    for host in scan.list_of_hosts_found:
-        device = models.Device(id=len(device_storage), ip=host, port=port, name=host)
+    device_id = trigger_id["device_id"]
 
-        if not api.validate_device_connection(device):
-            continue
+    try:
+        device = get_device_from_storage(device_id, device_storage)
+    except DeviceNotFound:
+        return app.get_asset_url("status-error.svg")
 
-        device_storage[str(device.id)] = device.model_dump()
+    connection_status = api.validate_device_connection(device)
 
-    return device_storage
+    if connection_status:
+        return app.get_asset_url("status-success.svg")
+    else:
+        return app.get_asset_url("status-error.svg")

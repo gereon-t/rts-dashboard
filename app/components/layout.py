@@ -7,6 +7,7 @@ from app.components.device_modal import device_form_modal
 from app.components.log_modal import create_log_modal
 from app.components.rts import rts_listgroup
 from app.components.rts_modal import rts_form_modal
+from app.components.scan_modal import network_form_modal
 from app.components.settings_modal import create_settings_modal
 
 
@@ -33,9 +34,9 @@ def create_header() -> html.Header:
                 className="left-section",
                 children=[
                     html.A(
-                        html.Div("RTS Dashboard", className="app-name"),
+                        "RTS Dashboard",
+                        className="app-name",
                         href="https://github.com/gereon-t/rts-dashboard",
-                        style={"text-decoration": "none"},
                     ),
                 ],
             ),
@@ -99,7 +100,7 @@ def create_content() -> html.Div:
                             ),
                             dbc.Button(
                                 "Scan for Devices",
-                                id=ids.SCAN_DEVICES_BUTTON,
+                                id=ids.OPEN_SCAN_MODAL_BUTTON,
                                 color="primary",
                                 outline=True,
                             ),
@@ -112,6 +113,7 @@ def create_content() -> html.Div:
             create_device_list(),
             create_settings_modal(),
             create_log_modal(),
+            network_form_modal(),
             html.Div(className="tab-divider"),
             html.P("", id=ids.DUMMY_OUTPUT, style={"display": "none"}),
             html.Div(

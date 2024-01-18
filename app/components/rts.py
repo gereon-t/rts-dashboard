@@ -132,7 +132,7 @@ def render_rts(rts: models.RTS_API, device: models.Device) -> html.Div:
                                 "0.00, 0.00, 0.00",
                                 className="item-position-field",
                                 id={
-                                    "type": "rts-target-position",
+                                    "type": "rts-position",
                                     "rts_id": rts.id,
                                     "device_id": device.id,
                                 },
@@ -211,14 +211,14 @@ def rts_actions(rts_id: int, device_id: int) -> html.Div:
                                     "device_id": device_id,
                                 },
                             ),
-                            dbc.DropdownMenuItem(
-                                "Dummy Tracking",
-                                id={
-                                    "type": "rts-dummy",
-                                    "rts_id": rts_id,
-                                    "device_id": device_id,
-                                },
-                            ),
+                            # dbc.DropdownMenuItem(
+                            #     "Dummy Tracking",
+                            #     id={
+                            #         "type": "rts-dummy",
+                            #         "rts_id": rts_id,
+                            #         "device_id": device_id,
+                            #     },
+                            # ),
                         ],
                         label="Actions",
                         group=True,
