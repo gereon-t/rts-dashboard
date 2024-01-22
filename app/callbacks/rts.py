@@ -1,7 +1,7 @@
 import logging
 from typing import Callable
 
-from dash import ALL, MATCH, Input, Output, State, ctx, Patch
+from dash import ALL, MATCH, Input, Output, State, ctx
 
 from app import api, app, models
 from app.components import ids
