@@ -205,3 +205,19 @@ def update_tracking_settings(
         return False
 
     return True
+
+
+def turn_to_target(
+    device: models.Device, rts_id: int, target_position: models.Position
+) -> bool:
+    response = request(
+        device,
+        "PUT",
+        f"/rts/turnto/{rts_id}",
+        json=target_position.model_dump(),
+    )
+
+    if response is None:
+        return False
+
+    return True

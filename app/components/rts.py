@@ -204,6 +204,14 @@ def rts_actions(rts_id: int, device_id: int) -> html.Div:
                                 },
                             ),
                             dbc.DropdownMenuItem(
+                                "Turn To Target",
+                                id={
+                                    "type": "rts-turn-to-target",
+                                    "rts_id": rts_id,
+                                    "device_id": device_id,
+                                },
+                            ),
+                            dbc.DropdownMenuItem(
                                 "Remove",
                                 id={
                                     "type": "rts-remove",

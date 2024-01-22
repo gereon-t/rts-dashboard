@@ -151,30 +151,30 @@ def update_rts_list(device_storage: dict[str, dict]):
     return render_rts_list(device_storage)
 
 
-@app.callback(
-    Output(ids.RTS_LIST, "children"),
-    Input({"type": "device-status-changed", "device_id": ALL}, "data"),
-    State(ids.DEVICE_STORAGE, "data"),
-)
-def refresh_rts_list(status_changed: list[bool], device_storage: dict[str, dict]):
-    """
-    This callback is triggered when the device status icon changes.
+# @app.callback(
+#     Output(ids.RTS_LIST, "children"),
+#     Input({"type": "device-status-changed", "device_id": ALL}, "data"),
+#     State(ids.DEVICE_STORAGE, "data"),
+# )
+# def refresh_rts_list(status_changed: list[bool], device_storage: dict[str, dict]):
+#     """
+#     This callback is triggered when the device status icon changes.
 
-    It will refresh the RTS list.
+#     It will refresh the RTS list.
 
-    Args:
-        status_changed (list[bool]): Whether the device status changed
-        device_storage (dict[str, dict]): The current device storage
+#     Args:
+#         status_changed (list[bool]): Whether the device status changed
+#         device_storage (dict[str, dict]): The current device storage
 
-    Returns:
-        list[html.Div]: The updated RTS list
-    """
-    current_children = Patch()
+#     Returns:
+#         list[html.Div]: The updated RTS list
+#     """
+#     current_children = Patch()
 
-    if not any(status_changed):
-        return current_children
+#     if not any(status_changed):
+#         return current_children
 
-    return render_rts_list(device_storage)
+#     return render_rts_list(device_storage)
 
 
 @app.callback(
@@ -305,6 +305,51 @@ def change_face(n_clicks: list[int], device_storage: dict[str, dict]):
         trigger_id=ctx.triggered_id,
         device_storage=device_storage,
     )
+
+
+@app.callback(
+    Output(ids.DUMMY_OUTPUT, "children", allow_duplicate=True),
+    Input({"type": "rts-turn-to-target", "rts_id": ALL, "device_id": ALL}, "n_clicks"),
+    State(ids.RTS_POSITION_STORAGE, "data"),
+    State(ids.DEVICE_STORAGE, "data"),
+    prevent_initial_call=True,
+)
+def turn_to_target(
+    n_clicks: list[int], rts_positions: dict, device_storage: dict[str, dict]
+):
+    """
+    This callback is triggered when the user clicks on the "Turn To Target" button for a RTS.
+
+    It will turn the RTS to the current target position by sending an API request to the device.
+
+    Args:
+        n_clicks (list[int]): The number of times the button has been clicked
+        device_storage (dict[str, dict]): The current device storage
+    """
+    if not any(n_clicks):
+        return
+
+    trigger_id = ctx.triggered_id
+
+    try:
+        device, rts_id = get_device_and_rts_id(
+            trigger_id=trigger_id, device_storage=device_storage
+        )
+        target_position = models.Position(
+            east=float(rts_positions["pos_x"]),
+            north=float(rts_positions["pos_y"]),
+            up=float(rts_positions["pos_z"]),
+        )
+        api_success = api.turn_to_target(
+            device, rts_id, target_position=target_position
+        )
+    except DeviceNotFound:
+        logger.error("Failed to get device")
+
+    if not api_success:
+        logger.error("API request to device failed.")
+
+    return
 
 
 @app.callback(

@@ -21,10 +21,7 @@ CLOSE_RTS_MODAL_BUTTON = "close-rts-modal-button"
 RTS_MODAL = "rts-modal"
 
 DEVICE_LIST = "device-list"
-REFRESH = "refresh"
 RTS_LIST = "rts-list"
-PROGRESS_BAR = "progress-bar"
-LOADING = "loading"
 
 INVALID_DEVICE_INPUT_ALERT = "invalid-input-alert"
 INVALID_RTS_INPUT_ALERT = "invalid-rts-input-alert"
@@ -38,10 +35,6 @@ DUMMY_OUTPUT = "dummy-output"
 
 DEVICE_STORAGE = "device-storage"
 RTS_POSITION_STORAGE = "rts-position-storage"
-TARGET_POSITION = "target-position"
-DEVICE_COUNT = "device-count"
-
-RTS_UPDATE_SIGNAL = "rts-update-signal"
 
 SETTINGS_MODAL = "settings-modal"
 SETTINGS_MODAL_BODY = "settings-modal-body"

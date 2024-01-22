@@ -39,6 +39,12 @@ class Log(BaseModel):
     name: str
 
 
+class Position(BaseModel):
+    north: float
+    east: float
+    up: float
+
+
 class TrackingSettings(BaseModel):
     tmc_measurement_mode: int = 1
     tmc_inclination_mode: int = 1
