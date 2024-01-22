@@ -62,7 +62,7 @@ CLOSE_LOG_MODAL_BUTTON = "close-log-modal-button"
 LOG_MODAL = "log-modal"
 
 CURRENT_TARGET_POSITION = "current-target-position"
-CURRENT_TARGET_DEVICE = "current-target-device"
+CURRENT_TARGET_RTS = "current-target-rts"
 
 SCAN_MODAL = "scan-modal"
 SCAN_DEVICE_BUTTON = "scan-device-button"

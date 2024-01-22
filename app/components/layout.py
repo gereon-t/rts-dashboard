@@ -42,16 +42,30 @@ def create_header() -> html.Header:
             ),
             html.Div(
                 children=[
-                    html.Img(src="/assets/target.svg", className="target-icon"),
                     html.Div(
-                        "0.00, 0.00, 0.00",
-                        className="current-target-position",
-                        id=ids.CURRENT_TARGET_POSITION,
+                        children=[
+                            html.Img(src="/assets/target.svg", className="target-icon"),
+                            html.Div(
+                                "0.00, 0.00, 0.00",
+                                className="current-target-position",
+                                id=ids.CURRENT_TARGET_POSITION,
+                            ),
+                        ],
+                        className="target-coordinates-container",
                     ),
                     html.Div(
-                        "(-)",
-                        className="current-target-device",
-                        id=ids.CURRENT_TARGET_DEVICE,
+                        children=[
+                            html.Img(
+                                src="/assets/total-station.png",
+                                className="target-rts-icon",
+                            ),
+                            html.Div(
+                                "-",
+                                className="current-target-rts",
+                                id=ids.CURRENT_TARGET_RTS,
+                            ),
+                        ],
+                        className="target-rts-container",
                     ),
                 ],
                 className="right-section",

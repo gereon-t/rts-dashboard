@@ -30,29 +30,44 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    width: 250px;
+}
+
+.target-coordinates-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.target-rts-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .target-icon {
     height: 30px;
+    margin-right: 10px;
+}
+
+.target-rts-icon {
+    height: 30px;
+    margin-right: 10px;
+
 }
 
 .current-target-position,
-.current-target-device {
+.current-target-rts {
     font-size: 16px;
     color: black;
     font-weight: 300;
 }
 
-
-
-.igg-logo {
-    height: 40px;
-    cursor: pointer;
+.current-target-position {
+    width: 250px;
 }
 
-.uni-bonn-logo {
-    height: 40px;
-    cursor: pointer;
-    margin-left: 10px;
+.current-target-rts {
+    width: 75px;
 }

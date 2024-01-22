@@ -506,7 +506,7 @@ def update_target_position(rts_positions: list[dict], stored_position: dict):
 
 @app.callback(
     Output(ids.CURRENT_TARGET_POSITION, "children"),
-    Output(ids.CURRENT_TARGET_DEVICE, "children"),
+    Output(ids.CURRENT_TARGET_RTS, "children"),
     Input(ids.RTS_POSITION_STORAGE, "data"),
 )
 def update_target_text(newest_position: dict):
@@ -524,7 +524,7 @@ def update_target_text(newest_position: dict):
     """
     newest_position = newest_position or DEFAULT_POSITION
     position_str = f"{float(newest_position['pos_x']):.2f}, {float(newest_position['pos_y']):.2f}, {float(newest_position['pos_z']):.2f}"
-    device_str = f"({newest_position['device']})"
+    device_str = f"{newest_position['device']}"
     return position_str, device_str
 
 
