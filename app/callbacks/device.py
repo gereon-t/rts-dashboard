@@ -181,11 +181,13 @@ def device_modal_actions(
     Output(
         {"type": "device-status-icon", "device_id": MATCH}, "src", allow_duplicate=True
     ),
+    Output({"type": "device-status-changed", "device_id": MATCH}, "data"),
     Input({"type": "device-status-interval", "device_id": MATCH}, "n_intervals"),
+    State({"type": "device-status-icon", "device_id": MATCH}, "src"),
     State(ids.DEVICE_STORAGE, "data"),
     prevent_initial_call=True,
 )
-def update_device_status_icon(_, device_storage: dict[str, dict]):
+def update_device_status_icon(_, current_icon: str, device_storage: dict[str, dict]):
     """
     This callback is triggered by the device status interval.
 
@@ -197,6 +199,7 @@ def update_device_status_icon(_, device_storage: dict[str, dict]):
 
     Returns:
         str: The URL of the icon to display
+        bool: Whether the icon has changed
     """
     trigger_id = ctx.triggered_id
 
@@ -213,6 +216,8 @@ def update_device_status_icon(_, device_storage: dict[str, dict]):
     connection_status = api.validate_device_connection(device)
 
     if connection_status:
-        return app.get_asset_url("status-success.svg")
+        new_icon = app.get_asset_url("status-success.svg")
     else:
-        return app.get_asset_url("status-error.svg")
+        new_icon = app.get_asset_url("status-error.svg")
+
+    return new_icon, current_icon != new_icon

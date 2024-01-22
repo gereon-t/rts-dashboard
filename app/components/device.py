@@ -24,6 +24,7 @@ def render_device(device: models.Device) -> html.Div:
                 interval=1000,
                 n_intervals=0,
             ),
+            dcc.Store(id={"type": "device-status-changed", "device_id": device.id}),
             html.Div(
                 className="item-left-section",
                 children=[

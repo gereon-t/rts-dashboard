@@ -1,7 +1,7 @@
 import logging
 from typing import Callable
 
-from dash import ALL, MATCH, Input, Output, State, ctx
+from dash import ALL, MATCH, Input, Output, State, ctx, Patch
 
 from app import api, app, models
 from app.components import ids
@@ -148,6 +148,32 @@ def update_rts_list(device_storage: dict[str, dict]):
     Returns:
         list[html.Div]: The updated RTS list
     """
+    return render_rts_list(device_storage)
+
+
+@app.callback(
+    Output(ids.RTS_LIST, "children"),
+    Input({"type": "device-status-changed", "device_id": ALL}, "data"),
+    State(ids.DEVICE_STORAGE, "data"),
+)
+def refresh_rts_list(status_changed: list[bool], device_storage: dict[str, dict]):
+    """
+    This callback is triggered when the device status icon changes.
+
+    It will refresh the RTS list.
+
+    Args:
+        status_changed (list[bool]): Whether the device status changed
+        device_storage (dict[str, dict]): The current device storage
+
+    Returns:
+        list[html.Div]: The updated RTS list
+    """
+    current_children = Patch()
+
+    if not any(status_changed):
+        return current_children
+
     return render_rts_list(device_storage)
 
 
