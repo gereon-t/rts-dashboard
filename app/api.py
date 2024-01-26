@@ -13,7 +13,7 @@ def request(
     method: str,
     path: str,
     json: Optional[dict] = None,
-    timeout: float = 2.0,
+    timeout: float = 1.0,
 ) -> Union[requests.Response, None]:
     try:
         response = requests.request(
@@ -38,7 +38,7 @@ def request(
 
 
 def validate_device_connection(device: models.DeviceCreate) -> bool:
-    response = request(device, "GET", "/", timeout=0.5)
+    response = request(device, "GET", "/", timeout=0.25)
 
     if response is None:
         return False

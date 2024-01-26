@@ -5,7 +5,6 @@ p {
 }
 
 body {
-    font-family: Roboto, thin;
     background-color: rgb(245, 245, 245);
     position: absolute;
     top: 65px;

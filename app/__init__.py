@@ -4,10 +4,7 @@ from dash import Dash
 from app.components.layout import create_layout
 
 
-external_stylesheets = [
-    "https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&display=swap",
-    dbc.themes.BOOTSTRAP,
-]
+external_stylesheets = [dbc.themes.BOOTSTRAP]
 
 server = flask.Flask(__name__)
 app = Dash(external_stylesheets=external_stylesheets, server=server, update_title=None)
