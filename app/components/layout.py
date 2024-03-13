@@ -15,7 +15,7 @@ def create_layout() -> html.Div:
     return html.Div(
         className="app-container",
         children=[
-            dcc.Store(id=ids.DEVICE_STORAGE, storage_type="local", data={}),
+            dcc.Store(id=ids.DEVICE_STORAGE, storage_type="session", data={}),
             dcc.Store(id=ids.RTS_POSITION_STORAGE, storage_type="session"),
             dcc.Store(id=ids.ACTIVE_RTS),
             dcc.Store(id=ids.ACTIVE_DEVICE),
