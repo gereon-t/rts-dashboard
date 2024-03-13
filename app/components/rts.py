@@ -36,8 +36,8 @@ def render_rts(rts: models.RTS_API, device: models.Device) -> html.Div:
                         children=[
                             html.P(rts.name, className="item-name"),
                             html.P(f"Port: {rts.port}", className="item-detail"),
-                            html.P(f"ID: {rts.id}", className="item-detail"),
                             html.P(f"Device: {device.name}", className="item-detail"),
+                            html.P(f"ID: {rts.id}", className="item-id"),
                         ],
                         className="item-name-container",
                     ),
@@ -219,14 +219,14 @@ def rts_actions(rts_id: int, device_id: int) -> html.Div:
                                     "device_id": device_id,
                                 },
                             ),
-                            dbc.DropdownMenuItem(
-                                "Dummy Tracking",
-                                id={
-                                    "type": "rts-dummy",
-                                    "rts_id": rts_id,
-                                    "device_id": device_id,
-                                },
-                            ),
+                            # dbc.DropdownMenuItem(
+                            #     "Dummy Tracking",
+                            #     id={
+                            #         "type": "rts-dummy",
+                            #         "rts_id": rts_id,
+                            #         "device_id": device_id,
+                            #     },
+                            # ),
                         ],
                         label="Actions",
                         group=True,

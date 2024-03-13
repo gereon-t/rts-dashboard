@@ -44,6 +44,12 @@
     font-weight: 300;
 }
 
+.item-id {
+    font-size: 10px;
+    color: rgb(129, 129, 129);
+    font-weight: 300;
+}
+
 .item-name {
     font-size: 20px;
     color: black;
