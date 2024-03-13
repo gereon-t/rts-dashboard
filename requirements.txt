@@ -1,6 +1,7 @@
-dash == 2.14.2
-dash-bootstrap-components == 1.5.0
-pydantic == 2.5.2
-networkscan == 1.0.9
-python-dotenv == 1.0.0
-gunicorn
+dash >= 2.14.2
+dash-bootstrap-components >= 1.5.0
+pydantic >= 2.5.2
+networkscan >= 1.0.9
+python-dotenv >= 1.0.0
+gunicorn >= 21.2.0
+httpx >= 0.27.0
