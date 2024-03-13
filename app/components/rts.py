@@ -219,14 +219,14 @@ def rts_actions(rts_id: int, device_id: int) -> html.Div:
                                     "device_id": device_id,
                                 },
                             ),
-                            # dbc.DropdownMenuItem(
-                            #     "Dummy Tracking",
-                            #     id={
-                            #         "type": "rts-dummy",
-                            #         "rts_id": rts_id,
-                            #         "device_id": device_id,
-                            #     },
-                            # ),
+                            dbc.DropdownMenuItem(
+                                "Dummy Tracking",
+                                id={
+                                    "type": "rts-dummy",
+                                    "rts_id": rts_id,
+                                    "device_id": device_id,
+                                },
+                            ),
                         ],
                         label="Actions",
                         group=True,

@@ -21,10 +21,7 @@ logger = logging.getLogger("root")
     prevent_initial_call=True,
 )
 def toggle_modal(
-    n_clicks: list[int],
-    n_clicks_close: int,
-    is_open: bool,
-    device_storage: dict[str, dict],
+    n_clicks: list[int], _: int, is_open: bool, device_storage: dict[str, dict]
 ):
     """
     This callback is triggered when the user clicks on the logs button of an RTS.
@@ -43,7 +40,7 @@ def toggle_modal(
         tuple: Tuple containing the new state of the modal, the current logs and the
             active device id
     """
-    if not any(n_clicks) and not (n_clicks_close > 0):
+    if not any(n_clicks) or ctx.triggered_id == ids.CLOSE_LOG_MODAL_BUTTON:
         modal_state = False
     else:
         modal_state = not is_open

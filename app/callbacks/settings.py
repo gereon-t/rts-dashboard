@@ -29,7 +29,7 @@ logger = logging.getLogger("root")
 )
 def toggle_modal(
     n_clicks_settings: list,
-    n_clicks_close: int,
+    _: int,
     is_open: bool,
     device_storage: dict[str, dict],
 ):
@@ -51,7 +51,10 @@ def toggle_modal(
         tuple: Tuple containing the new state of the modal, the current settings
             and the active RTS and device id
     """
-    if not any(n_clicks_settings) and not (n_clicks_close > 0):
+    if (
+        not any(n_clicks_settings)
+        or ctx.triggered_id == ids.CLOSE_SETTINGS_MODAL_BUTTON
+    ):
         modal_state = False
     else:
         modal_state = not is_open

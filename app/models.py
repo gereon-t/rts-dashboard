@@ -12,11 +12,11 @@ class RTS_APICreate(BaseModel):
 
 
 class RTS_API(RTS_APICreate):
-    id: int
+    id: str
 
 
 class RTS(BaseModel):
-    id: int
+    id: str
     device_id: int
     name: str
 
@@ -32,8 +32,8 @@ class Device(DeviceCreate):
 
 
 class Log(BaseModel):
-    id: int
-    rts_id: int
+    id: str
+    rts_id: str
     path: str
     active: bool
     name: str
