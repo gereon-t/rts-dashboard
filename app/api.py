@@ -1,28 +1,32 @@
 import logging
 from typing import Optional, Union
-import httpx
-import asyncio
 import requests
-
 from app import models
 
 logger = logging.getLogger("root")
 
 
-async def request(
+def request(
     device: models.DeviceCreate,
     method: str,
     path: str,
     json: Optional[dict] = None,
     timeout: float = 1.0,
 ) -> Union[requests.Response, None]:
-    url = f"http://{device.ip}:{device.port}{path}"
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.request(
-                method=method, url=url, json=json, timeout=timeout
-            )
-    except httpx.HTTPError:
+        response = requests.request(
+            method,
+            f"http://{device.ip}:{device.port}{path}",
+            json=json,
+            timeout=timeout,
+        )
+
+        if response.status_code != 200:
+            logger.error(response.text)
+            return None
+
+        return response
+    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
         logger.error(
             "Failed to connect to device with ip: %s and port: %s",
             device.ip,
@@ -30,15 +34,9 @@ async def request(
         )
         return None
 
-    if response.status_code != 200:
-        logger.error(response.text)
-        return None
-
-    return response
-
 
 def validate_device_connection(device: models.DeviceCreate) -> bool:
-    response = asyncio.run(request(device, "GET", "/", timeout=0.25))
+    response = request(device, "GET", "/", timeout=0.25)
 
     if response is None:
         return False
@@ -53,7 +51,7 @@ def validate_device_connection(device: models.DeviceCreate) -> bool:
 def add_rts(
     device: models.Device, rts: models.RTS_APICreate
 ) -> Union[models.RTS_API, None]:
-    response = asyncio.run(request(device, "POST", "/rts/", json=rts.model_dump()))
+    response = request(device, "POST", "/rts/", json=rts.model_dump())
 
     if response is None:
         logger.error("Failed to add rts %s", rts.name)
@@ -64,7 +62,7 @@ def add_rts(
 
 
 def delete_rts(device: models.Device, rts_id: int) -> bool:
-    response = asyncio.run(request(device, "DELETE", f"/rts/{rts_id}"))
+    response = request(device, "DELETE", f"/rts/{rts_id}")
 
     if response is None:
         return False
@@ -74,7 +72,7 @@ def delete_rts(device: models.Device, rts_id: int) -> bool:
 
 
 def delete_log(device: models.Device, log_id: int) -> bool:
-    response = asyncio.run(request(device, "DELETE", f"/logs/{log_id}"))
+    response = request(device, "DELETE", f"/logs/{log_id}")
 
     if response is None:
         return False
@@ -84,7 +82,7 @@ def delete_log(device: models.Device, log_id: int) -> bool:
 
 
 def get_rts(device: models.Device) -> list[models.RTS_API]:
-    response = asyncio.run(request(device, "GET", "/rts/"))
+    response = request(device, "GET", "/rts/")
 
     if response is None:
         return []
@@ -93,7 +91,7 @@ def get_rts(device: models.Device) -> list[models.RTS_API]:
 
 
 def validate_rts_connection(device: models.Device, rts_id: int) -> bool:
-    response = asyncio.run(request(device, "GET", f"/rts/test/{rts_id}"))
+    response = request(device, "GET", f"/rts/test/{rts_id}")
 
     if response is None:
         return False
@@ -102,7 +100,7 @@ def validate_rts_connection(device: models.Device, rts_id: int) -> bool:
 
 
 def start_tracking(device: models.Device, rts_id: int) -> bool:
-    response = asyncio.run(request(device, "POST", f"/tracking/start/{rts_id}"))
+    response = request(device, "POST", f"/tracking/start/{rts_id}")
 
     if response is None:
         return False
@@ -111,7 +109,7 @@ def start_tracking(device: models.Device, rts_id: int) -> bool:
 
 
 def start_dummy_tracking(device: models.Device, rts_id: int) -> bool:
-    response = asyncio.run(request(device, "POST", f"/tracking/start/dummy/{rts_id}"))
+    response = request(device, "POST", f"/tracking/start/dummy/{rts_id}")
 
     if response is None:
         return False
@@ -120,7 +118,7 @@ def start_dummy_tracking(device: models.Device, rts_id: int) -> bool:
 
 
 def stop_tracking(device: models.Device, rts_id: int) -> bool:
-    response = asyncio.run(request(device, "POST", f"/tracking/stop/{rts_id}"))
+    response = request(device, "POST", f"/tracking/stop/{rts_id}")
 
     if response is None:
         return False
@@ -129,7 +127,7 @@ def stop_tracking(device: models.Device, rts_id: int) -> bool:
 
 
 def get_tracking_status(device: models.Device, rts_id: int) -> Union[dict, None]:
-    response = asyncio.run(request(device, "GET", f"/tracking/status/{rts_id}"))
+    response = request(device, "GET", f"/tracking/status/{rts_id}")
 
     if response is None:
         return None
@@ -138,7 +136,7 @@ def get_tracking_status(device: models.Device, rts_id: int) -> Union[dict, None]
 
 
 def get_connection_status(device: models.Device, rts_id: int) -> Union[dict, None]:
-    response = asyncio.run(request(device, "GET", f"/rts/status/{rts_id}"))
+    response = request(device, "GET", f"/rts/status/{rts_id}")
 
     if response is None:
         return None
@@ -147,7 +145,7 @@ def get_connection_status(device: models.Device, rts_id: int) -> Union[dict, Non
 
 
 def ping_rts(device: models.Device, rts_id: int) -> bool:
-    response = asyncio.run(request(device, "GET", f"/rts/ping/{rts_id}"))
+    response = request(device, "GET", f"/rts/ping/{rts_id}")
 
     if response is None:
         return False
@@ -156,7 +154,7 @@ def ping_rts(device: models.Device, rts_id: int) -> bool:
 
 
 def change_face(device: models.Device, rts_id: int) -> bool:
-    response = asyncio.run(request(device, "POST", f"/tracking/change_face/{rts_id}"))
+    response = request(device, "POST", f"/tracking/change_face/{rts_id}")
 
     if response is None:
         return False
@@ -165,7 +163,7 @@ def change_face(device: models.Device, rts_id: int) -> bool:
 
 
 def get_logs(device: models.Device, rts_id: int) -> list[models.Log]:
-    response = asyncio.run(request(device, "GET", f"/logs/rts/{rts_id}"))
+    response = request(device, "GET", f"/logs/rts/{rts_id}")
 
     if response is None:
         return []
@@ -174,7 +172,7 @@ def get_logs(device: models.Device, rts_id: int) -> list[models.Log]:
 
 
 def download_log(device: models.Device, log_id: int) -> Union[bytes, None]:
-    response = asyncio.run(request(device, "GET", f"/logs/download/{log_id}"))
+    response = request(device, "GET", f"/logs/download/{log_id}")
 
     if response is None:
         return None
@@ -183,7 +181,7 @@ def download_log(device: models.Device, log_id: int) -> Union[bytes, None]:
 
 
 def get_tracking_settings(device: models.Device, rts_id: int) -> Union[dict, None]:
-    response = asyncio.run(request(device, "GET", f"/tracking/settings/{rts_id}"))
+    response = request(device, "GET", f"/tracking/settings/{rts_id}")
 
     if response is None:
         return None
@@ -194,13 +192,11 @@ def get_tracking_settings(device: models.Device, rts_id: int) -> Union[dict, Non
 def update_tracking_settings(
     device: models.Device, rts_id: int, tracking_settings: models.TrackingSettings
 ) -> bool:
-    response = asyncio.run(
-        request(
-            device,
-            "PUT",
-            f"/tracking/settings/{rts_id}",
-            json=tracking_settings.model_dump(),
-        )
+    response = request(
+        device,
+        "PUT",
+        f"/tracking/settings/{rts_id}",
+        json=tracking_settings.model_dump(),
     )
 
     if response is None:
@@ -212,13 +208,11 @@ def update_tracking_settings(
 def turn_to_target(
     device: models.Device, rts_id: int, target_position: models.Position
 ) -> bool:
-    response = asyncio.run(
-        request(
-            device,
-            "PUT",
-            f"/rts/turnto/{rts_id}",
-            json=target_position.model_dump(),
-        )
+    response = request(
+        device,
+        "PUT",
+        f"/rts/turnto/{rts_id}",
+        json=target_position.model_dump(),
     )
 
     if response is None:
